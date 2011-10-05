@@ -16,7 +16,7 @@ Usage
 
       model_cache do
         with_key                   # User.find_cached(1)
-        with_attribute :login      # User.find_by_login('flyerhzm')
+        with_attribute :login      # User.find_cached_by_login('flyerhzm')
         with_method :last_post     # user.cached_last_post
       end
 
