@@ -47,5 +47,15 @@ Usage
       end
     end
 
+Install
+-------
+
+add the following code to your Gemfile
+
+    gem "simple_cacheable", :require => "cacheable"
+
+
+Copyright © 2011 Richard Huang (flyerhzm@gmail.com), released under the MIT license
+
 
 [1]:https://github.com/flyerhzm/rails-bestpractices.com
