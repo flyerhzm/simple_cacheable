@@ -6,6 +6,11 @@ extracted from [rails-bestpractices.com][1].
 
 it supports activerecord >= 3.0.0
 
+Introduction
+------------
+
+Here is a blog post to introduce simple_cacheable gem, <http://rails-bestpractices.com/blog/posts/24-simple_cacheable>
+
 Usage
 -----
 
