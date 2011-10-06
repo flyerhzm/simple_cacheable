@@ -18,16 +18,22 @@ Usage
       include Cacheable
 
       has_many :posts
+      has_one :account
 
       model_cache do
-        with_key                   # User.find_cached(1)
-        with_attribute :login      # User.find_cached_by_login('flyerhzm')
-        with_method :last_post     # user.cached_last_post
+        with_key                          # User.find_cached(1)
+        with_attribute :login             # User.find_cached_by_login('flyerhzm')
+        with_method :last_post            # user.cached_last_post
+        with_association :posts, :account # user.cached_posts, user.cached_account
       end
 
       def last_post
         posts.last
       end
+    end
+
+    class Account < ActiveRecord::Base
+      belongs_to :user
     end
 
     class Post < ActiveRecord::Base
@@ -37,8 +43,8 @@ Usage
       has_many :comments, :as => :commentable
 
       model_cache do
-        with_key                   # post.find_cached(1)
-        with_association :user     # post.cached_user
+        with_key                          # post.find_cached(1)
+        with_association :user, :comments # post.cached_user, post.cached_comments
       end
     end
 
