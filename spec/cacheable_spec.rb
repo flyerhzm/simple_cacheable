@@ -9,7 +9,7 @@ describe Cacheable do
     @post1 = @user.posts.create(:title => 'post1')
     @post2 = @user.posts.create(:title => 'post2')
     @comment1 = @post1.comments.create
-    @comment2 = @post2.comments.create
+    @comment2 = @post1.comments.create
   end
 
   before :each do
@@ -103,6 +103,22 @@ describe Cacheable do
       end
     end
 
+    context "has_many with polymorphic" do
+      it "should not cache associations" do
+        cache.data["posts/#{@post1.id}/association/comments"].should be_nil
+      end
+
+      it "should cache Post#comments" do
+        @post1.cached_comments.should == [@comment1, @comment2]
+        cache.data["posts/#{@post1.id}/association/comments"].should == [@comment1, @comment2]
+      end
+
+      it "should cache Post#comments multiple times" do
+        @post1.cached_comments
+        @post1.cached_comments.should == [@comment1, @comment2]
+      end
+    end
+
     context "has_one" do
       it "should not cache associations" do
         cache.data["users/#{@user.id}/association/account"].should be_nil
@@ -147,6 +163,13 @@ describe Cacheable do
       cache.data["users/#{@user.id}/association/posts"].should_not be_nil
       @post1.save
       cache.data["users/#{@user.id}/association/posts"].should be_nil
+    end
+
+    it "should delete has_many with polymorphic with_association cache" do
+      @post1.cached_comments
+      cache.data["posts/#{@post1.id}/association/comments"].should_not be_nil
+      @comment1.save
+      cache.data["posts/#{@post1.id}/association/comments"].should be_nil
     end
 
     it "should delete has_one with_association cache" do
