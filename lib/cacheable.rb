@@ -23,14 +23,13 @@ module Cacheable
             after_update :expire_attribute_cache
           EOF
 
-          write_inheritable_attribute :cached_indices, attributes.inject({}) { |indices, attribute| indices[attribute] = {} }
+          class_attribute :cached_indices
+          self.cached_indices = attributes.inject({}) { |indices, attribute| indices[attribute] = {} }
           attributes.each do |attribute|
             class_eval <<-EOF
               def self.find_cached_by_#{attribute}(value)
-                indices = read_inheritable_attribute :cached_indices
-                indices["#{attribute}"] ||= []
-                indices["#{attribute}"] << value
-                write_inheritable_attribute :cached_indices, indices
+                self.cached_indices["#{attribute}"] ||= []
+                self.cached_indices["#{attribute}"] << value
                 Rails.cache.fetch attribute_cache_key("#{attribute}", value) do
                   self.find_by_#{attribute}(value)
                 end
@@ -44,7 +43,8 @@ module Cacheable
             after_update :expire_method_cache
           EOF
 
-          write_inheritable_attribute :cached_methods, methods
+          class_attribute :cached_methods
+          self.cached_methods = methods
           methods.each do |meth|
             class_eval <<-EOF
               def cached_#{meth}
@@ -114,20 +114,16 @@ module Cacheable
   end
 
   def expire_attribute_cache
-    if indices = self.class.read_inheritable_attribute(:cached_indices)
-      indices.each do |attribute, values|
-        values.each do |value|
-          Rails.cache.delete self.class.attribute_cache_key(attribute, value)
-        end
+    self.class.cached_indices.each do |attribute, values|
+      values.each do |value|
+        Rails.cache.delete self.class.attribute_cache_key(attribute, value)
       end
     end
   end
 
   def expire_method_cache
-    if meths = self.class.read_inheritable_attribute(:cached_methods)
-      meths.each do |meth|
-        Rails.cache.delete method_cache_key(meth)
-      end
+    self.class.cached_methods.each do |meth|
+      Rails.cache.delete method_cache_key(meth)
     end
   end
 
