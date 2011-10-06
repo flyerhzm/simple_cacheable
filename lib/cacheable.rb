@@ -63,7 +63,31 @@ module Cacheable
               polymorphic = association.options[:polymorphic]
               class_eval <<-EOF
                 def cached_#{association_name}
-                  Rails.cache.fetch association_cache_key("#{association_name}", #{polymorphic}) do
+                  Rails.cache.fetch belong_association_cache_key("#{association_name}", #{polymorphic}) do
+                    #{association_name}
+                  end
+                end
+              EOF
+            else
+              reverse_association = association.klass.reflect_on_all_associations(:belongs_to).find { |reverse_association|
+                reverse_association.options[:polymorphic] ? reverse_association.name == association.options[:as] : reverse_association.klass == self
+              }
+              association.klass.class_eval <<-EOF
+                after_save :expire_#{association_name}_cache
+                after_destroy :expire_#{association_name}_cache
+
+                def expire_#{association_name}_cache
+                  if respond_to? :cached_#{reverse_association.name}
+                    cached_#{reverse_association.name}.expire_association_cache(:#{association_name})
+                  else
+                    #{reverse_association.name}.expire_association_cache(:#{association_name})
+                  end
+                end
+              EOF
+
+              class_eval <<-EOF
+                def cached_#{association_name}
+                  Rails.cache.fetch have_association_cache_key("#{association_name}") do
                     #{association_name}
                   end
                 end
@@ -107,6 +131,10 @@ module Cacheable
     end
   end
 
+  def expire_association_cache(name)
+    Rails.cache.delete have_association_cache_key(name)
+  end
+
   def model_cache_key
     "#{self.class.name.tableize}/#{self.id.to_i}"
   end
@@ -115,11 +143,15 @@ module Cacheable
     "#{model_cache_key}/method/#{meth}"
   end
 
-  def association_cache_key(name, polymorphic=nil)
+  def belong_association_cache_key(name, polymorphic=nil)
     if polymorphic
       "#{self.send("#{name}_type").tableize}/#{self.send("#{name}_id")}"
     else
       "#{name.tableize}/#{self.send(name + "_id")}"
     end
+  end
+
+  def have_association_cache_key(name)
+    "#{model_cache_key}/association/#{name}"
   end
 end

@@ -65,6 +65,10 @@ RSpec.configure do |config|
         t.string :login
       end
 
+      create_table :accounts do |t|
+        t.integer :user_id
+      end
+
       create_table :posts do |t|
         t.integer :user_id
         t.string :title

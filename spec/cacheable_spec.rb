@@ -5,13 +5,14 @@ describe Cacheable do
 
   before :all do
     @user = User.create(:login => 'flyerhzm')
+    @account = @user.create_account
     @post1 = @user.posts.create(:title => 'post1')
     @post2 = @user.posts.create(:title => 'post2')
     @comment1 = @post1.comments.create
     @comment2 = @post2.comments.create
   end
 
-  after :each do
+  before :each do
     cache.clear
   end
 
@@ -64,24 +65,58 @@ describe Cacheable do
   end
 
   context "with_association" do
-    it "should not cache association" do
-      cache.data["users/#{@user.id}"].should be_nil
+    context "belongs_to" do
+      it "should not cache association" do
+        cache.data["users/#{@user.id}"].should be_nil
+      end
+
+      it "should cache Post#user" do
+        @post1.cached_user.should == @user
+        cache.data["users/#{@user.id}"].should == @user
+      end
+
+      it "should cache Post#user multiple times" do
+        @post1.cached_user
+        @post1.cached_user.should == @user
+      end
+
+      it "should cache Comment#commentable with polymorphic" do
+        cache.data["posts/#{@post1.id}"].should be_nil
+        @comment1.cached_commentable.should == @post1
+        cache.data["posts/#{@post1.id}"].should == @post1
+      end
     end
 
-    it "should cache Post#user" do
-      @post1.cached_user.should == @user
-      cache.data["users/#{@user.id}"].should == @user
+    context "has_many" do
+      it "should not cache associations" do
+        cache.data["users/#{@user.id}/association/posts"].should be_nil
+      end
+
+      it "should cache User#posts" do
+        @user.cached_posts.should == [@post1, @post2]
+        cache.data["users/#{@user.id}/association/posts"].should == [@post1, @post2]
+      end
+
+      it "should cache User#posts multiple times" do
+        @user.cached_posts
+        @user.cached_posts.should == [@post1, @post2]
+      end
     end
 
-    it "should cache Post#user multiple times" do
-      @post1.cached_user
-      @post1.cached_user.should == @user
-    end
+    context "has_one" do
+      it "should not cache associations" do
+        cache.data["users/#{@user.id}/association/account"].should be_nil
+      end
 
-    it "should cache Comment#commentable with polymorphic" do
-      cache.data["posts/#{@post1.id}"].should be_nil
-      @comment1.cached_commentable.should == @post1
-      cache.data["posts/#{@post1.id}"].should == @post1
+      it "should cache User#posts" do
+        @user.cached_account.should == @account
+        cache.data["users/#{@user.id}/association/account"].should == @account
+      end
+
+      it "should cache User#posts multiple times" do
+        @user.cached_account
+        @user.cached_account.should == @account
+      end
     end
   end
 
@@ -105,6 +140,20 @@ describe Cacheable do
       cache.data["users/#{@user.id}/method/last_post"].should_not be_nil
       @user.expire_model_cache
       cache.data["users/#{@user.id}/method/last_post"].should be_nil
+    end
+
+    it "should delete has_many with_association cache" do
+      @user.cached_posts
+      cache.data["users/#{@user.id}/association/posts"].should_not be_nil
+      @post1.save
+      cache.data["users/#{@user.id}/association/posts"].should be_nil
+    end
+
+    it "should delete has_one with_association cache" do
+      @user.cached_account
+      cache.data["users/#{@user.id}/association/account"].should_not be_nil
+      @account.save
+      cache.data["users/#{@user.id}/association/account"].should be_nil
     end
   end
 end
