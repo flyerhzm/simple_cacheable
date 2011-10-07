@@ -88,7 +88,7 @@ module Cacheable
               class_eval <<-EOF
                 def cached_#{association_name}
                   Rails.cache.fetch have_association_cache_key("#{association_name}") do
-                    #{association_name}
+                    #{association_name}.respond_to?(:all) ? #{association_name}.all : #{association_name}
                   end
                 end
               EOF
