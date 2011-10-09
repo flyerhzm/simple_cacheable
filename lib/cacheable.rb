@@ -3,10 +3,13 @@ module Cacheable
     base.class_eval do
       class <<self
         def model_cache(&block)
+          class_attribute :cache_key, :cached_indices, :cached_methods
           instance_exec &block
         end
 
         def with_key
+          self.cache_key = true
+
           class_eval <<-EOF
             after_update :expire_key_cache
 
@@ -19,12 +22,12 @@ module Cacheable
         end
 
         def with_attribute(*attributes)
+          self.cached_indices = attributes.inject({}) { |indices, attribute| indices[attribute] = {} }
+
           class_eval <<-EOF
             after_update :expire_attribute_cache
           EOF
 
-          class_attribute :cached_indices
-          self.cached_indices = attributes.inject({}) { |indices, attribute| indices[attribute] = {} }
           attributes.each do |attribute|
             class_eval <<-EOF
               def self.find_cached_by_#{attribute}(value)
@@ -39,12 +42,12 @@ module Cacheable
         end
 
         def with_method(*methods)
+          self.cached_methods = methods
+
           class_eval <<-EOF
             after_update :expire_method_cache
           EOF
 
-          class_attribute :cached_methods
-          self.cached_methods = methods
           methods.each do |meth|
             class_eval <<-EOF
               def cached_#{meth}
@@ -104,9 +107,9 @@ module Cacheable
   end
 
   def expire_model_cache
-    expire_key_cache
-    expire_attribute_cache
-    expire_method_cache
+    expire_key_cache if self.class.cache_key
+    expire_attribute_cache if self.class.cached_indices.present?
+    expire_method_cache if self.class.cached_methods.present?
   end
 
   def expire_key_cache
