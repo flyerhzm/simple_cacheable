@@ -3,12 +3,12 @@ module Cacheable
     base.class_eval do
       class <<self
         def model_cache(&block)
-          class_attribute :cache_key, :cached_indices, :cached_methods
+          class_attribute :cached_key, :cached_indices, :cached_methods
           instance_exec &block
         end
 
         def with_key
-          self.cache_key = true
+          self.cached_key = true
 
           class_eval <<-EOF
             after_update :expire_key_cache
@@ -107,7 +107,7 @@ module Cacheable
   end
 
   def expire_model_cache
-    expire_key_cache if self.class.cache_key
+    expire_key_cache if self.class.cached_key
     expire_attribute_cache if self.class.cached_indices.present?
     expire_method_cache if self.class.cached_methods.present?
   end
