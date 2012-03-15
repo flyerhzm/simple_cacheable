@@ -11,7 +11,7 @@ module Cacheable
           self.cached_key = true
 
           class_eval <<-EOF
-            after_update :expire_key_cache
+            after_commit :expire_key_cache, :on => :update
 
             def self.find_cached(id)
               Rails.cache.fetch "#{name.tableize}/" + id.to_i.to_s do
@@ -25,7 +25,7 @@ module Cacheable
           self.cached_indices = attributes.inject({}) { |indices, attribute| indices[attribute] = {} }
 
           class_eval <<-EOF
-            after_update :expire_attribute_cache
+            after_commit :expire_attribute_cache, :on => :update
           EOF
 
           attributes.each do |attribute|
@@ -45,7 +45,7 @@ module Cacheable
           self.cached_methods = methods
 
           class_eval <<-EOF
-            after_update :expire_method_cache
+            after_commit :expire_method_cache, :on => :update
           EOF
 
           methods.each do |meth|
@@ -76,8 +76,7 @@ module Cacheable
                 reverse_association.options[:polymorphic] ? reverse_association.name == association.options[:as] : reverse_association.klass == self
               }
               association.klass.class_eval <<-EOF
-                after_save :expire_#{association_name}_cache
-                after_destroy :expire_#{association_name}_cache
+                after_commit :expire_#{association_name}_cache
 
                 def expire_#{association_name}_cache
                   if respond_to? :cached_#{reverse_association.name}
