@@ -117,9 +117,8 @@ module Cacheable
 
   def expire_attribute_cache
     self.class.cached_indices.each do |attribute, values|
-      values.each do |value|
-        Rails.cache.delete self.class.attribute_cache_key(attribute, value)
-      end
+      value = self.send(attribute)
+      Rails.cache.delete self.class.attribute_cache_key(attribute, value)
     end
   end
 
