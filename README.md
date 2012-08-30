@@ -4,7 +4,7 @@ cacheable
 cacheable is a simple cache implementation based on activerecord, it is
 extracted from [rails-bestpractices.com][1].
 
-it supports activerecord >= 3.0.0
+it supports activerecord >= 3.0.0, works on 1.9.2, 1.9.3 and jruby.
 
 Introduction
 ------------
