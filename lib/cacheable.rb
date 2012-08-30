@@ -64,6 +64,7 @@ module Cacheable
             association = reflect_on_association(association_name)
             if :belongs_to == association.macro
               polymorphic = association.options[:polymorphic]
+              polymorphic ||= false
               class_eval <<-EOF
                 def cached_#{association_name}
                   Rails.cache.fetch belong_association_cache_key("#{association_name}", #{polymorphic}) do
