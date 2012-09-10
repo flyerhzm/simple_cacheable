@@ -142,10 +142,11 @@ module Cacheable
   end
 
   def belong_association_cache_key(name, polymorphic=nil)
+    foreign_key = association(name.to_sym).options[:foreign_key] || "#{name}_id"
     if polymorphic
-      "#{self.send("#{name}_type").tableize}/#{self.send("#{name}_id")}"
+      "#{self.send("#{name}_type").tableize}/#{self.send(foreign_key)}"
     else
-      "#{name.tableize}/#{self.send(name + "_id")}"
+      "#{name.tableize}/#{self.send(foreign_key)}"
     end
   end
 
