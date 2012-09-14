@@ -66,7 +66,7 @@ RSpec.configure do |config|
       end
 
       create_table :accounts do |t|
-        t.integer :user_id
+        t.integer :u_id
       end
 
       create_table :posts do |t|
