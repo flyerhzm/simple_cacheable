@@ -165,6 +165,14 @@ describe Cacheable do
       cache.data["users/#{@user.id}/association/posts"].should be_nil
     end
 
+
+    it "should delete has_many with_association cache on destroy" do
+      @user.cached_posts
+      cache.data["users/#{@user.id}/association/posts"].should_not be_nil
+      @post1.destroy
+      cache.data["users/#{@user.id}/association/posts"].should be_nil
+    end
+
     it "should delete has_many with polymorphic with_association cache" do
       @post1.cached_comments
       cache.data["posts/#{@post1.id}/association/comments"].should_not be_nil
@@ -172,10 +180,24 @@ describe Cacheable do
       cache.data["posts/#{@post1.id}/association/comments"].should be_nil
     end
 
+    it "should delete has_many with polymorphic with_association cache on destroy" do
+      @post1.cached_comments
+      cache.data["posts/#{@post1.id}/association/comments"].should_not be_nil
+      @comment1.destroy
+      cache.data["posts/#{@post1.id}/association/comments"].should be_nil
+    end
+
     it "should delete has_one with_association cache" do
       @user.cached_account
       cache.data["users/#{@user.id}/association/account"].should_not be_nil
       @account.save
+      cache.data["users/#{@user.id}/association/account"].should be_nil
+    end
+
+    it "should delete has_one with_association cache on destroy" do
+      @user.cached_account
+      cache.data["users/#{@user.id}/association/account"].should_not be_nil
+      @account.destroy
       cache.data["users/#{@user.id}/association/account"].should be_nil
     end
   end

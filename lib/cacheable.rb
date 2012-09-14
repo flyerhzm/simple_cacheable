@@ -11,7 +11,7 @@ module Cacheable
           self.cached_key = true
 
           class_eval <<-EOF
-            after_commit :expire_key_cache, :on => :update
+            after_commit :expire_key_cache, :in => [:update,:destroy]
 
             def self.find_cached(id)
               Rails.cache.fetch "#{name.tableize}/" + id.to_i.to_s do
@@ -25,7 +25,7 @@ module Cacheable
           self.cached_indices = attributes.inject({}) { |indices, attribute| indices[attribute] = {} }
 
           class_eval <<-EOF
-            after_commit :expire_attribute_cache, :on => :update
+            after_commit :expire_attribute_cache, :in => [:update,:destroy]
           EOF
 
           attributes.each do |attribute|
@@ -45,7 +45,7 @@ module Cacheable
           self.cached_methods = methods
 
           class_eval <<-EOF
-            after_commit :expire_method_cache, :on => :update
+            after_commit :expire_method_cache, :in => [:update,:destroy]
           EOF
 
           methods.each do |meth|
@@ -142,10 +142,11 @@ module Cacheable
   end
 
   def belong_association_cache_key(name, polymorphic=nil)
+    foreign_key = association(name.to_sym).options[:foreign_key] || "#{name}_id"
     if polymorphic
-      "#{self.send("#{name}_type").tableize}/#{self.send("#{name}_id")}"
+      "#{self.send("#{name}_type").tableize}/#{self.send(foreign_key)}"
     else
-      "#{name.tableize}/#{self.send(name + "_id")}"
+      "#{name.tableize}/#{self.send(foreign_key)}"
     end
   end
 

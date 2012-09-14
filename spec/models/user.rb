@@ -2,7 +2,7 @@ class User < ActiveRecord::Base
   include Cacheable
 
   has_many :posts
-  has_one :account
+  has_one :account,foreign_key: "u_id"
 
   model_cache do
     with_key
