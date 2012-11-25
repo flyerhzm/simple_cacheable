@@ -1,3 +1,5 @@
+require 'uri'
+
 module Cacheable
   def self.included(base)
     base.class_eval do
@@ -100,7 +102,7 @@ module Cacheable
         end
 
         def attribute_cache_key(attribute, value)
-          "#{name.tableize}/attribute/#{attribute}/#{value}"
+          "#{name.tableize}/attribute/#{attribute}/#{URI.escape(value)}"
         end
       end
     end
