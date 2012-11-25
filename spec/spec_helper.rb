@@ -5,6 +5,7 @@ require 'rails'
 require 'active_record'
 require 'rspec'
 require 'mocha_standalone'
+require 'memcached'
 
 require 'cacheable'
 
@@ -16,48 +17,19 @@ $LOAD_PATH.unshift(MODELS)
 
 Dir[ File.join(MODELS, "*.rb") ].sort.each { |file| require File.basename(file) }
 
-class TestCache
-  attr_reader :data
-
-  def initialize
-    @data = {}
-  end
-
-  def fetch(key, &block)
-    if read(key)
-      read(key)
-    else
-      write(key, block.call)
-    end
-  end
-
-  def read(key)
-    @data[key]
-  end
-
-  def write(key, value)
-    @data[key] = value
-  end
-
-  def delete(key)
-    @data.delete key
-  end
-
-  def clear
-    @data.clear
-  end
-end
-
 module Rails
   class <<self
     def cache
-      @cache ||= TestCache.new
+      @cache ||= Memcached::Rails.new
     end
   end
 end
 
 RSpec.configure do |config|
   config.mock_with :mocha
+
+  config.filter_run focus: true
+  config.run_all_when_everything_filtered = true
 
   config.before :all do
     ::ActiveRecord::Schema.define(:version => 1) do
