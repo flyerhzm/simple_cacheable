@@ -28,6 +28,8 @@ module Cacheable
 
           class_eval <<-EOF
             after_commit :expire_attribute_cache, :on => :update
+            after_commit :expire_all_attribute_cache, :on => :update
+
           EOF
 
           attributes.each do |attribute|
@@ -37,6 +39,14 @@ module Cacheable
                 self.cached_indices["#{attribute}"] << value
                 Rails.cache.fetch attribute_cache_key("#{attribute}", value) do
                   self.find_by_#{attribute}(value)
+                end
+              end
+
+              def self.find_cached_all_by_#{attribute}(value)
+                self.cached_indices["#{attribute}"] ||= []
+                self.cached_indices["#{attribute}"] << value
+                Rails.cache.fetch all_attribute_cache_key("#{attribute}", value) do
+                  self.find_all_by_#{attribute}(value)
                 end
               end
             EOF
@@ -102,7 +112,11 @@ module Cacheable
         end
 
         def attribute_cache_key(attribute, value)
-          "#{name.tableize}/attribute/#{attribute}/#{URI.escape(value)}"
+          "#{name.tableize}/attribute/#{attribute}/#{URI.escape(value.to_s)}"
+        end
+
+        def all_attribute_cache_key(attribute, value)
+          "#{name.tableize}/attribute/#{attribute}/all/#{URI.escape(value.to_s)}"
         end
       end
     end
@@ -122,6 +136,13 @@ module Cacheable
     self.class.cached_indices.each do |attribute, values|
       value = self.send(attribute)
       Rails.cache.delete self.class.attribute_cache_key(attribute, value)
+    end
+  end
+
+  def expire_all_attribute_cache
+    self.class.cached_indices.each do |attribute, values|
+      value = self.send(attribute)
+      Rails.cache.delete self.class.all_attribute_cache_key(attribute, value)
     end
   end
 

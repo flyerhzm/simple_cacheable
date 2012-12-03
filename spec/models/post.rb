@@ -6,6 +6,7 @@ class Post < ActiveRecord::Base
 
   model_cache do
     with_key
+    with_attribute :user_id
     with_association :user, :comments
   end
 end
