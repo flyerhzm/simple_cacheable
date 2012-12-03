@@ -51,7 +51,30 @@ describe Cacheable do
       new_user = User.create(:login => "user space")
       User.find_cached_by_login("user space").should == new_user
     end
+
+    it "should handle fixed numbers" do
+      Post.find_cached_by_user_id(@user.id).should == @post1
+      Rails.cache.read("posts/attribute/user_id/#{@user.id}").should == @post1
+    end
+
+    context "find_all" do
+      it "should not cache Post.find_all_by_user_id" do
+        Rails.cache.read("posts/attribute/user_id/all/#{@user.id}").should be_nil
+      end
+
+      it "should cache by Post.find_cached_all_by_user_id" do
+        Post.find_cached_all_by_user_id(@user.id).should == [@post1, @post2]
+        Rails.cache.read("posts/attribute/user_id/all/#{@user.id}").should == [@post1, @post2]
+      end
+
+      it "should get cached by Post.find_cached_all_by_user_id multiple times" do
+        Post.find_cached_all_by_user_id(@user.id)
+        Post.find_cached_all_by_user_id(@user.id).should == [@post1, @post2]
+      end
+
+    end
   end
+
 
   context "with_method" do
     it "should not cache User.last_post" do
