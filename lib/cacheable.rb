@@ -29,7 +29,6 @@ module Cacheable
           class_eval <<-EOF
             after_commit :expire_attribute_cache, :on => :update
             after_commit :expire_all_attribute_cache, :on => :update
-
           EOF
 
           attributes.each do |attribute|
@@ -125,6 +124,7 @@ module Cacheable
   def expire_model_cache
     expire_key_cache if self.class.cached_key
     expire_attribute_cache if self.class.cached_indices.present?
+    expire_all_attribute_cache if self.class.cached_indices.present?
     expire_method_cache if self.class.cached_methods.present?
   end
 
