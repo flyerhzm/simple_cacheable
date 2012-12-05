@@ -50,6 +50,11 @@ RSpec.configure do |config|
         t.integer :commentable_id
         t.string :commentable_type
       end
+
+      create_table :images do |t|
+        t.integer :viewable_id
+        t.string :viewable_type
+      end
     end
   end
 

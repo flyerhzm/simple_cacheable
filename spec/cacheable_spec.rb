@@ -8,6 +8,8 @@ describe Cacheable do
     @account = @user.create_account
     @post1 = @user.posts.create(:title => 'post1')
     @post2 = @user.posts.create(:title => 'post2')
+    @image1 = @post1.images.create
+    @image2 = @post1.images.create
     @comment1 = @post1.comments.create
     @comment2 = @post1.comments.create
   end
@@ -160,6 +162,22 @@ describe Cacheable do
       it "should cache User#posts multiple times" do
         @user.cached_account
         @user.cached_account.should == @account
+      end
+    end
+
+    context "has_many through" do
+      it "should not cache associations" do
+        Rails.cache.read("users/#{@user.id}/association/images").should be_nil
+      end
+
+      it "should cache User#images" do
+        @user.cached_images.should == [@image1, @image2]
+        Rails.cache.read("users/#{@user.id}/association/images").should == [@image1, @image2]
+      end
+
+      it "should cache User#images multiple times" do
+        @user.cached_images
+        @user.cached_images.should == [@image1, @image2]
       end
     end
   end
