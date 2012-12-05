@@ -84,9 +84,11 @@ module Cacheable
                 end
               EOF
             else
+              as = association.options[:through] ? association.source_reflection.options[:as] : association.options[:as]
               reverse_association = association.klass.reflect_on_all_associations(:belongs_to).find { |reverse_association|
-                reverse_association.options[:polymorphic] ? reverse_association.name == association.options[:as] : reverse_association.klass == self
+                reverse_association.options[:polymorphic] ? reverse_association.name == as : reverse_association.klass == self
               }
+
               association.klass.class_eval <<-EOF
                 after_commit :expire_#{association_name}_cache
 
