@@ -106,10 +106,32 @@ module Cacheable
                     end
                   end
                 EOF
+              elsif :has_and_belongs_to_many == association.macro
+                  # No such thing as a polymorphic has_and_belongs_to_many
+                  reverse_association = association.klass.reflect_on_all_associations(:has_and_belongs_to_many).find { |reverse_association|
+                    reverse_association.klass == self
+                  }
+
+
+                  association.klass.class_eval <<-EOF
+                    after_commit :expire_#{association_name}_cache
+
+                    def expire_#{association_name}_cache
+                      if respond_to? :cached_#{reverse_association.name}
+                        # cached_viewable.expire_association_cache
+                        cached_#{reverse_association.name}.expire_association_cache(:#{association_name})
+                      else
+                        #{reverse_association.name}.each do |assoc|
+                          assoc.expire_association_cache(:#{association_name})
+                        end
+                      end
+                    end
+                  EOF
               else
                 reverse_association = association.klass.reflect_on_all_associations(:belongs_to).find { |reverse_association|
                   reverse_association.options[:polymorphic] ? reverse_association.name == association.options[:as] : reverse_association.klass == self
                 }
+
                 association.klass.class_eval <<-EOF
                   after_commit :expire_#{association_name}_cache
 

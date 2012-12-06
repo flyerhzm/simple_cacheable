@@ -12,6 +12,8 @@ describe Cacheable do
     @image2 = @post1.images.create
     @comment1 = @post1.comments.create
     @comment2 = @post1.comments.create
+    @tag1 = @post1.tags.create(title: "Rails")
+    @tag2 = @post1.tags.create(title: "Caching")
   end
 
   before :each do
@@ -190,6 +192,32 @@ describe Cacheable do
       end
     end
 
+    context "has_and_belongs_to_many" do
+
+      it "should not cache associations off the bat" do
+        Rails.cache.read("posts/#{@post1.id}/association/tags").should be_nil
+      end
+
+      it "should cache Post#tags" do
+        @post1.cached_tags.should == [@tag1, @tag2]
+        Rails.cache.read("posts/#{@post1.id}/association/tags").should == [@tag1, @tag2]
+      end
+
+      it "should handle multiple requests" do
+        @post1.cached_tags
+        @post1.cached_tags.should == [@tag1, @tag2]
+      end
+
+      context "expiry" do
+        it "should have the correct collection" do
+          @tag3 = @post1.tags.create!(title: "Invalidation is hard")
+          Rails.cache.read("posts/#{@post1.id}/association/tags").should be_nil
+          @post1.cached_tags.should == [@tag1, @tag2, @tag3]
+          Rails.cache.read("posts/#{@post1.id}/association/tags").should == [@tag1, @tag2, @tag3]
+        end
+      end
+    end
+
   end
 
   context "expire_model_cache" do
@@ -240,6 +268,13 @@ describe Cacheable do
       Rails.cache.read("users/#{@user.id}/association/account").should_not be_nil
       @account.save
       Rails.cache.read("users/#{@user.id}/association/account").should be_nil
+    end
+
+    it "should delete has_and_belongs_to_many with_association cache" do
+      @post1.cached_tags
+      Rails.cache.read("posts/#{@post1.id}/association/tags").should_not be_nil
+      @tag1.save
+      Rails.cache.read("posts/#{@post1.id}/association/tags").should be_nil
     end
   end
 end
