@@ -1,4 +1,7 @@
 language: ruby
 rvm:
   - 1.9.3
-  - jruby-head
+  - jruby-19mode
+env: DB=sqlite
+service:
+  - memcached
