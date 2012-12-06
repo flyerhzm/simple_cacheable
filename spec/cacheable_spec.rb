@@ -179,7 +179,17 @@ describe Cacheable do
         @user.cached_images
         @user.cached_images.should == [@image1, @image2]
       end
+
+      context "expiry" do
+        it "should have the correct collection" do
+          @image3 = @post1.images.create
+          Rails.cache.read("users/#{@user.id}/association/images").should be_nil
+          @user.cached_images.should == [@image1, @image2, @image3]
+          Rails.cache.read("users/#{@user.id}/association/images").should == [@image1, @image2, @image3]
+        end
+      end
     end
+
   end
 
   context "expire_model_cache" do
@@ -216,6 +226,13 @@ describe Cacheable do
       Rails.cache.read("posts/#{@post1.id}/association/comments").should_not be_nil
       @comment1.save
       Rails.cache.read("posts/#{@post1.id}/association/comments").should be_nil
+    end
+
+    it "should delete has_many through with_association cache" do
+      @user.cached_images
+      Rails.cache.read("users/#{@user.id}/association/images").should_not be_nil
+      @image2.save
+      Rails.cache.read("users/#{@user.id}/association/images").should be_nil
     end
 
     it "should delete has_one with_association cache" do
