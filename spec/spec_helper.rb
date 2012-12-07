@@ -4,18 +4,28 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 require 'rails'
 require 'active_record'
 require 'rspec'
-require 'mocha_standalone'
+require 'mocha/api'
 require 'memcached'
-
 require 'cacheable'
+
+
+# MODELS = File.join(File.dirname(__FILE__), "models")
+# $LOAD_PATH.unshift(MODELS)
+# Dir[ File.join(MODELS, "*.rb") ].each { |f| require f }
+
+# It needs this order otherwise cacheable throws
+# errors when looking for reflection classes
+# Specifically, post can't be before tag
+# and user can't be before post
+require 'models/account'
+require 'models/comment'
+require 'models/image'
+require 'models/tag'
+require 'models/post'
+require 'models/user'
 
 ActiveRecord::Migration.verbose = false
 ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database => ':memory:')
-
-MODELS = File.join(File.dirname(__FILE__), "models")
-$LOAD_PATH.unshift(MODELS)
-
-Dir[ File.join(MODELS, "*.rb") ].sort.each { |file| require File.basename(file) }
 
 module Rails
   class <<self
@@ -55,7 +65,17 @@ RSpec.configure do |config|
         t.integer :viewable_id
         t.string :viewable_type
       end
+
+      create_table :tags do |t|
+        t.string :title
+      end
+
+      create_table :posts_tags, id: false do |t|
+        t.integer :post_id
+        t.integer :tag_id
+      end
     end
+
   end
 
   config.after :all do
