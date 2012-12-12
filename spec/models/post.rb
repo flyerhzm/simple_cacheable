@@ -2,8 +2,8 @@ class Post < ActiveRecord::Base
   include Cacheable
 
   belongs_to :user
-  has_many :comments, :as => :commentable
 
+  has_many :comments, :as => :commentable
   has_many :images, :as => :viewable
 
   has_and_belongs_to_many :tags
