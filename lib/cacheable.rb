@@ -5,7 +5,7 @@ module Cacheable
     base.class_eval do
       class <<self
         def model_cache(&block)
-          class_attribute :cached_key, :cached_indices, :cached_methods
+          class_attribute :cached_key, :cached_indices, :cached_methods, :cached_associations
           instance_exec &block
         end
 
@@ -71,6 +71,8 @@ module Cacheable
         end
 
         def with_association(*association_names)
+          self.cached_associations = association_names
+
           association_names.each do |association_name|
             association = reflect_on_association(association_name)
             if :belongs_to == association.macro
@@ -173,6 +175,11 @@ module Cacheable
     expire_attribute_cache if self.class.cached_indices.present?
     expire_all_attribute_cache if self.class.cached_indices.present?
     expire_method_cache if self.class.cached_methods.present?
+    if self.class.cached_associations.present?
+      self.class.cached_associations.each do |assoc|
+        expire_association_cache(assoc)
+      end
+    end
   end
 
   def expire_key_cache
