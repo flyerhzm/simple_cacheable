@@ -92,22 +92,25 @@ module Cacheable
                 # FIXME it should be the only reflection but I'm not 100% positive
                 reverse_through_association = through_association.klass.reflect_on_all_associations(:belongs_to).first
 
+                # In a through association it doesn't have to be a belongs_to
                 reverse_association = association.klass.reflect_on_all_associations(:belongs_to).find { |reverse_association|
                   reverse_association.options[:polymorphic] ? reverse_association.name == association.source_reflection.options[:as] : reverse_association.klass == self
                 }
 
-                association.klass.class_eval <<-EOF
-                  after_commit :expire_#{association_name}_cache
+                if reverse_association
+                  association.klass.class_eval <<-EOF
+                    after_commit :expire_#{association_name}_cache
 
-                  def expire_#{association_name}_cache
-                    if respond_to? :cached_#{reverse_association.name}
-                      # cached_viewable.expire_association_cache
-                      cached_#{reverse_association.name}.expire_association_cache(:#{association_name})
-                    else
-                      #{reverse_association.name}.#{reverse_through_association.name}.expire_association_cache(:#{association_name})
+                    def expire_#{association_name}_cache
+                      if respond_to? :cached_#{reverse_association.name}
+                        # cached_viewable.expire_association_cache
+                        cached_#{reverse_association.name}.expire_association_cache(:#{association_name})
+                      else
+                        #{reverse_association.name}.#{reverse_through_association.name}.expire_association_cache(:#{association_name})
+                      end
                     end
-                  end
-                EOF
+                  EOF
+                end
               elsif :has_and_belongs_to_many == association.macro
                   # No such thing as a polymorphic has_and_belongs_to_many
                   reverse_association = association.klass.reflect_on_all_associations(:has_and_belongs_to_many).find { |reverse_association|
