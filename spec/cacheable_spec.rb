@@ -242,6 +242,15 @@ describe Cacheable do
       Rails.cache.read("users/#{@user.id}/method/last_post").should be_nil
     end
 
+    it "should delete associations cache" do
+      @user.cached_images
+      Rails.cache.read("users/#{@user.id}/association/images").should_not be_nil
+      @user.expire_model_cache
+      Rails.cache.read("users/#{@user.id}/association/images").should be_nil
+    end
+  end
+
+  context "object#save" do
     it "should delete has_many with_association cache" do
       @user.cached_posts
       Rails.cache.read("users/#{@user.id}/association/posts").should_not be_nil
