@@ -5,7 +5,8 @@ describe Cacheable do
 
   before :all do
     @user = User.create(:login => 'flyerhzm')
-    @account = @user.create_account
+    @group1 = Group.create(name: "Ruby On Rails")
+    @account = @user.create_account(group: @group1)
     @post1 = @user.posts.create(:title => 'post1')
     @post2 = @user.posts.create(:title => 'post2')
     @image1 = @post1.images.create
@@ -192,6 +193,23 @@ describe Cacheable do
       end
     end
 
+    context "has_one through belongs_to" do
+      it "should not cache associations" do
+        Rails.cache.read("users/#{@user.id}/association/group").should be_nil
+      end
+
+      it "should cache User#group" do
+        @user.cached_group.should == @group1
+        Rails.cache.read("users/#{@user.id}/association/group").should == @group1
+      end
+
+      it "should cache User#group multiple times" do
+        @user.cached_group
+        @user.cached_group.should == @group1
+      end
+
+    end
+
     context "has_and_belongs_to_many" do
 
       it "should not cache associations off the bat" do
@@ -293,5 +311,11 @@ describe Cacheable do
       Rails.cache.read("posts/#{@post1.id}/association/tags").should be_nil
     end
 
+    it "should delete has_one through belongs_to with_association cache" do
+      @group1.save
+      Rails.cache.read("users/#{@user.id}/association/group").should be_nil
+      @user.cached_group.should == @group1
+      Rails.cache.read("users/#{@user.id}/association/group").should == @group1
+    end
   end
 end

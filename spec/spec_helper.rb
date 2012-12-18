@@ -18,6 +18,7 @@ require 'debugger'
 # Specifically, post can't be before tag
 # and user can't be before post
 require 'models/account'
+require 'models/group'
 require 'models/comment'
 require 'models/image'
 require 'models/tag'
@@ -49,6 +50,7 @@ RSpec.configure do |config|
 
       create_table :accounts do |t|
         t.integer :user_id
+        t.integer :group_id
       end
 
       create_table :posts do |t|
@@ -73,6 +75,10 @@ RSpec.configure do |config|
       create_table :posts_tags, id: false do |t|
         t.integer :post_id
         t.integer :tag_id
+      end
+
+      create_table :groups do |t|
+        t.string :name
       end
     end
 
