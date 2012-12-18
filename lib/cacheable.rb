@@ -75,6 +75,7 @@ module Cacheable
 
           association_names.each do |association_name|
             association = reflect_on_association(association_name)
+
             if :belongs_to == association.macro
               polymorphic = association.options[:polymorphic]
               polymorphic ||= false
@@ -101,7 +102,6 @@ module Cacheable
 
                   def expire_#{association_name}_cache
                     if respond_to? :cached_#{reverse_association.name}
-                      # cached_viewable.expire_association_cache
                       cached_#{reverse_association.name}.expire_association_cache(:#{association_name})
                     else
                       #{reverse_association.name}.#{reverse_through_association.name}.expire_association_cache(:#{association_name})
@@ -113,7 +113,6 @@ module Cacheable
                   reverse_association = association.klass.reflect_on_all_associations(:has_and_belongs_to_many).find { |reverse_association|
                     reverse_association.klass == self
                   }
-
 
                   association.klass.class_eval <<-EOF
                     after_commit :expire_#{association_name}_cache
@@ -139,7 +138,6 @@ module Cacheable
 
                   def expire_#{association_name}_cache
                     if respond_to? :cached_#{reverse_association.name}
-                      # cached_viewable.expire_association_cache
                       cached_#{reverse_association.name}.expire_association_cache(:#{association_name})
                     else
                       #{reverse_association.name}.expire_association_cache(:#{association_name})
@@ -147,7 +145,6 @@ module Cacheable
                   end
                 EOF
               end
-
               class_eval <<-EOF
                 def cached_#{association_name}
                   Rails.cache.fetch have_association_cache_key("#{association_name}") do

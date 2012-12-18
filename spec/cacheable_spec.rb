@@ -265,6 +265,13 @@ describe Cacheable do
       Rails.cache.read("posts/#{@post1.id}/association/comments").should be_nil
     end
 
+    it "should delete has_many with polymorphic with_association without reverse assocation cache" do
+      @post1.cached_images
+      Rails.cache.read("posts/#{@post1.id}/association/images").should_not be_nil
+      @image1.save
+      Rails.cache.read("posts/#{@post1.id}/association/images").should be_nil
+    end
+
     it "should delete has_many through with_association cache" do
       @user.cached_images
       Rails.cache.read("users/#{@user.id}/association/images").should_not be_nil
@@ -285,5 +292,6 @@ describe Cacheable do
       @tag1.save
       Rails.cache.read("posts/#{@post1.id}/association/tags").should be_nil
     end
+
   end
 end
