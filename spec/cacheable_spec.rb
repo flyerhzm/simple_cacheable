@@ -98,18 +98,18 @@ describe Cacheable do
   end
 
   context "with_class_method" do
-    it "should not cache Post.posts_by_first_user" do
-      Rails.cache.read("posts/class_method/posts_by_first_user").should be_nil
+    it "should not cache Post.default_post" do
+      Rails.cache.read("posts/class_method/default_post").should be_nil
     end
 
-    it "should cache Post.posts_by_first_user" do
-      Post.cached_posts_by_first_user.should == [@post1, @post2]
-      Rails.cache.read("posts/class_method/posts_by_first_user").should == [@post1, @post2]
+    it "should cache Post.default_post" do
+      Post.cached_default_post.should == @post1
+      Rails.cache.read("posts/class_method/default_post").should == @post1
     end
 
-    it "should cache Post.posts_by_first_user multiple times" do
-      Post.cached_posts_by_first_user
-      Post.cached_posts_by_first_user.should == [@post1, @post2]
+    it "should cache Post.default_post multiple times" do
+      Post.cached_default_post
+      Post.cached_default_post.should == @post1
     end
   end
 
@@ -277,10 +277,10 @@ describe Cacheable do
     end
 
     it "should delete with_class_method cache" do
-      Post.cached_posts_by_first_user
-      Rails.cache.read("posts/class_method/posts_by_first_user").should_not be_nil
+      Post.cached_default_post
+      Rails.cache.read("posts/class_method/default_post").should_not be_nil
       @post1.expire_model_cache
-      Rails.cache.read("posts/class_method/posts_by_first_user").should be_nil
+      Rails.cache.read("posts/class_method/default_post").should be_nil
     end
 
     it "should delete associations cache" do
