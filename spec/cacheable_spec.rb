@@ -97,6 +97,22 @@ describe Cacheable do
     end
   end
 
+  context "with_class_method" do
+    it "should not cache Post.posts_by_first_user" do
+      Rails.cache.read("posts/class_method/posts_by_first_user").should be_nil
+    end
+
+    it "should cache Post.posts_by_first_user" do
+      Post.cached_posts_by_first_user.should == [@post1, @post2]
+      Rails.cache.read("posts/class_method/posts_by_first_user").should == [@post1, @post2]
+    end
+
+    it "should cache Post.posts_by_first_user multiple times" do
+      Post.cached_posts_by_first_user
+      Post.cached_posts_by_first_user.should == [@post1, @post2]
+    end
+  end
+
   context "with_association" do
     context "belongs_to" do
       it "should not cache association" do
@@ -260,12 +276,20 @@ describe Cacheable do
       Rails.cache.read("users/#{@user.id}/method/last_post").should be_nil
     end
 
+    it "should delete with_class_method cache" do
+      Post.cached_posts_by_first_user
+      Rails.cache.read("posts/class_method/posts_by_first_user").should_not be_nil
+      @post1.expire_model_cache
+      Rails.cache.read("posts/class_method/posts_by_first_user").should be_nil
+    end
+
     it "should delete associations cache" do
       @user.cached_images
       Rails.cache.read("users/#{@user.id}/association/images").should_not be_nil
       @user.expire_model_cache
       Rails.cache.read("users/#{@user.id}/association/images").should be_nil
     end
+
   end
 
   context "object#save" do

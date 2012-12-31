@@ -3,9 +3,13 @@ require 'uri'
 module Cacheable
   def self.included(base)
     base.class_eval do
-      class <<self
+      class << self
         def model_cache(&block)
-          class_attribute :cached_key, :cached_indices, :cached_methods, :cached_associations
+          class_attribute :cached_key,
+                          :cached_indices,
+                          :cached_methods,
+                          :cached_class_methods,
+                          :cached_associations
           instance_exec &block
         end
 
@@ -68,6 +72,27 @@ module Cacheable
               end
             EOF
           end
+        end
+
+        # Cached class method
+        # Should expire on any instance save
+        def with_class_method(*methods)
+          self.cached_class_methods = methods
+
+          class_eval <<-EOF
+            after_commit :expire_class_method_cache, on: :update
+          EOF
+
+          methods.each do |meth|
+            class_eval <<-EOF
+              def self.cached_#{meth}
+                Rails.cache.fetch class_method_cache_key("#{meth}") do
+                  #{meth}
+                end
+              end
+            EOF
+          end
+
         end
 
         def with_association(*association_names)
@@ -167,8 +192,15 @@ module Cacheable
         def all_attribute_cache_key(attribute, value)
           "#{name.tableize}/attribute/#{attribute}/all/#{URI.escape(value.to_s)}"
         end
+
+        def class_method_cache_key(meth)
+          "#{name.tableize}/class_method/#{meth}"
+        end
+
       end
+
     end
+
   end
 
   def expire_model_cache
@@ -176,6 +208,8 @@ module Cacheable
     expire_attribute_cache if self.class.cached_indices.present?
     expire_all_attribute_cache if self.class.cached_indices.present?
     expire_method_cache if self.class.cached_methods.present?
+    expire_class_method_cache if self.class.cached_class_methods.present?
+
     if self.class.cached_associations.present?
       self.class.cached_associations.each do |assoc|
         expire_association_cache(assoc)
@@ -204,6 +238,12 @@ module Cacheable
   def expire_method_cache
     self.class.cached_methods.each do |meth|
       Rails.cache.delete method_cache_key(meth)
+    end
+  end
+
+  def expire_class_method_cache
+    self.class.cached_class_methods.each do |meth|
+      Rails.cache.delete self.class.class_method_cache_key(meth)
     end
   end
 
