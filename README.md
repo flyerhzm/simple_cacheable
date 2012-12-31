@@ -44,7 +44,12 @@ Usage
 
       model_cache do
         with_key                          # post.find_cached(1)
-        with_association :user, :comments # post.cached_user, post.cached_comments
+        with_class_method  :posts_by_first_user # Post.cached_posts_by_first_user
+        with_association   :user, :comments # post.cached_user, post.cached_comments
+      end
+
+      def self.posts_by_first_user
+        where(user_id: User.first.id)
       end
     end
 
