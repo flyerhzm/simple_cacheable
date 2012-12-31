@@ -12,10 +12,10 @@ class Post < ActiveRecord::Base
     with_key
     with_attribute :user_id
     with_association :user, :comments, :images, :tags
-    with_class_method :posts_by_first_user
+    with_class_method :default_post
   end
 
-  def self.posts_by_first_user
-    where(user_id: User.first.id)
+  def self.default_post
+    Post.first
   end
 end
