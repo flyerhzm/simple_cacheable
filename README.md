@@ -43,13 +43,13 @@ Usage
       has_many :comments, :as => :commentable
 
       model_cache do
-        with_key                                 # post.find_cached(1)
-        with_class_method  :posts_by_first_user  # Post.cached_posts_by_first_user
-        with_association   :user, :comments      # post.cached_user, post.cached_comments
+        with_key                                # post.find_cached(1)
+        with_class_method  :default_post        # Post.default_post
+        with_association   :user, :comments     # post.cached_user, post.cached_comments
       end
 
-      def self.posts_by_first_user
-        where(user_id: User.first.id)
+      def self.default_post
+        Post.first
       end
     end
 
@@ -71,7 +71,15 @@ add the following code to your Gemfile
     gem "simple_cacheable", :require => "cacheable"
 
 
+Gotchas
+-------
+
+Caching, and caching invalidation specifically, can be hard and confusing.  Simple Cacheable methods should
+expire correctly in most cases.  Be careful using `with_method` and `with_class_method`, they should
+specifically not be used to return collections.  This is demonstrated well Tobias Lutke's presentation: [Rockstar Memcaching][2].
+
 Copyright © 2011 Richard Huang (flyerhzm@gmail.com), released under the MIT license
 
 
 [1]:https://github.com/flyerhzm/rails-bestpractices.com
+[2]:http://www.infoq.com/presentations/lutke-rockstar-memcaching
