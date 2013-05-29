@@ -111,6 +111,17 @@ describe Cacheable do
       Post.cached_default_post
       Post.cached_default_post.should == @post1
     end
+
+    it "should cache Post.retrieve_with_user_id" do
+      Post.cached_retrieve_with_user_id(1).should == @post1
+      Rails.cache.read("posts/class_method/retrieve_with_user_id/1").should == @post1
+    end
+
+    it "should cache Post.retrieve_with_both with multiple arguments" do
+      debugger
+      Post.cached_retrieve_with_both(1, 1).should be_true
+      Rails.cache.read("posts/class_method/retrieve_with_both/1+1").should be_true
+    end
   end
 
   context "with_association" do

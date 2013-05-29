@@ -79,20 +79,17 @@ module Cacheable
         def with_class_method(*methods)
           self.cached_class_methods = methods
 
-          class_eval <<-EOF
+          class_eval do
             after_commit :expire_class_method_cache, on: :update
-          EOF
-
-          methods.each do |meth|
-            class_eval <<-EOF
-              def self.cached_#{meth}
-                Rails.cache.fetch class_method_cache_key("#{meth}") do
-                  #{meth}
-                end
-              end
-            EOF
           end
 
+          methods.each do |meth|
+            define_singleton_method("cached_#{meth}") do |*args|
+              Rails.cache.fetch class_method_cache_key("#{meth}", args) do
+                self.method(meth).arity == 0 ? send(meth) : send(meth, *args)
+              end
+            end
+          end
         end
 
         def with_association(*association_names)
@@ -193,8 +190,11 @@ module Cacheable
           "#{name.tableize}/attribute/#{attribute}/all/#{URI.escape(value.to_s)}"
         end
 
-        def class_method_cache_key(meth)
-          "#{name.tableize}/class_method/#{meth}"
+        def class_method_cache_key(meth, *args)
+          key = "#{name.tableize}/class_method/#{meth}"
+          args.flatten!
+          key += "/#{args.join('+')}" if args.any?
+          return key
         end
 
       end
