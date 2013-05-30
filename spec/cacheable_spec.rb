@@ -5,10 +5,12 @@ describe Cacheable do
 
   before :all do
     @user = User.create(:login => 'flyerhzm')
+    user2 = User.create(:login => 'PelegR')
     @group1 = Group.create(name: "Ruby On Rails")
     @account = @user.create_account(group: @group1)
     @post1 = @user.posts.create(:title => 'post1')
     @post2 = @user.posts.create(:title => 'post2')
+    user2.posts.create(:title => 'post3')
     @image1 = @post1.images.create
     @image2 = @post1.images.create
     @comment1 = @post1.comments.create
@@ -298,6 +300,16 @@ describe Cacheable do
       Rails.cache.read("posts/class_method/retrieve_with_user_id/1").should_not be_nil
       @post1.expire_model_cache
       Rails.cache.read("posts/class_method/retrieve_with_user_id/1").should be_nil
+    end
+
+    it "should delete with_class_method cache (retrieve_with_user_id) with different arguments" do
+      Post.cached_retrieve_with_user_id(1)
+      Post.cached_retrieve_with_user_id(2)
+      Rails.cache.read("posts/class_method/retrieve_with_user_id/1").should_not be_nil
+      Rails.cache.read("posts/class_method/retrieve_with_user_id/2").should_not be_nil
+      @post1.expire_model_cache
+      Rails.cache.read("posts/class_method/retrieve_with_user_id/1").should be_nil
+      Rails.cache.read("posts/class_method/retrieve_with_user_id/2").should be_nil
     end
 
     it "should delete with_class_method cache (retrieve_with_both)" do

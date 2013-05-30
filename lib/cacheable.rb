@@ -84,7 +84,8 @@ module Cacheable
 
           methods.each do |meth|
             define_singleton_method("cached_#{meth}") do |*args|
-              self.cached_class_methods["#{meth}"] = [args]
+              self.cached_class_methods["#{meth}"] ||= []
+              self.cached_class_methods["#{meth}"] << args
               Rails.cache.fetch class_method_cache_key(meth, args) do
                 self.method(meth).arity == 0 ? send(meth) : send(meth, *args)
               end
@@ -243,7 +244,9 @@ module Cacheable
 
   def expire_class_method_cache
     self.class.cached_class_methods.each do |meth, args|
-      Rails.cache.delete self.class.class_method_cache_key(meth, args)
+      args.each do |arg|
+        Rails.cache.delete self.class.class_method_cache_key(meth, arg)
+      end
     end
   end
 
