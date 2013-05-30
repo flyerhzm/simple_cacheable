@@ -29,7 +29,6 @@ module Cacheable
 
         def with_attribute(*attributes)
           self.cached_indices = attributes.inject({}) { |indices, attribute| indices[attribute] = {} }
-
           class_eval <<-EOF
             after_commit :expire_attribute_cache, :on => :update
             after_commit :expire_all_attribute_cache, :on => :update
@@ -77,7 +76,7 @@ module Cacheable
         # Cached class method
         # Should expire on any instance save
         def with_class_method(*methods)
-          self.cached_class_methods = methods
+          self.cached_class_methods = methods.inject({}) { |indices, meth| indices[meth] = {} }
 
           class_eval do
             after_commit :expire_class_method_cache, on: :update
@@ -85,6 +84,7 @@ module Cacheable
 
           methods.each do |meth|
             define_singleton_method("cached_#{meth}") do |*args|
+              self.cached_class_methods["#{meth}"] = [args]
               Rails.cache.fetch class_method_cache_key("#{meth}", args) do
                 self.method(meth).arity == 0 ? send(meth) : send(meth, *args)
               end
@@ -242,8 +242,8 @@ module Cacheable
   end
 
   def expire_class_method_cache
-    self.class.cached_class_methods.each do |meth|
-      Rails.cache.delete self.class.class_method_cache_key(meth)
+    self.class.cached_class_methods.each do |meth, args|
+      Rails.cache.delete self.class.class_method_cache_key(meth, args)
     end
   end
 
