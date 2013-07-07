@@ -21,6 +21,7 @@ describe Cacheable do
 
   before :each do
     cache.clear
+    @user.reload
   end
 
   context "with_key" do
