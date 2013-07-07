@@ -7,7 +7,6 @@ require 'rspec'
 require 'mocha/api'
 require 'memcached'
 require 'cacheable'
-require 'debugger'
 
 # MODELS = File.join(File.dirname(__FILE__), "models")
 # $LOAD_PATH.unshift(MODELS)
