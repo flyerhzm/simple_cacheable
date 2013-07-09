@@ -1,81 +1,5 @@
 module Cacheable
-  module CacheTypes
-    def with_key
-      self.cached_key = true
-
-      class_eval do
-        after_commit :expire_key_cache, on: :update
-      end
-
-      define_singleton_method("find_cached") do |id|
-        Rails.cache.fetch "#{name.tableize}/" + id.to_i.to_s do
-          self.find(id)
-        end
-      end
-    end
-
-    def with_attribute(*attributes)
-      self.cached_indices = attributes.inject({}) { |indices, attribute| indices[attribute] = {} }
-
-      class_eval do
-        after_commit :expire_attribute_cache, :on => :update
-        after_commit :expire_all_attribute_cache, :on => :update
-      end
-
-      attributes.each do |attribute|
-        define_singleton_method("find_cached_by_#{attribute}") do |value|
-          self.cached_indices["#{attribute}"] ||= []
-          self.cached_indices["#{attribute}"] << value
-          Rails.cache.fetch attribute_cache_key("#{attribute}", value) do
-            self.send("find_by_#{attribute}", value)
-          end
-        end
-
-        define_singleton_method("find_cached_all_by_#{attribute}") do |value|
-          self.cached_indices["#{attribute}"] ||= []
-          self.cached_indices["#{attribute}"] << value
-          Rails.cache.fetch all_attribute_cache_key("#{attribute}", value) do
-            self.send("find_all_by_#{attribute}", value)
-          end
-        end
-      end
-    end
-
-    def with_method(*methods)
-      self.cached_methods = methods
-
-      class_eval do
-        after_commit :expire_method_cache, :on => :update
-      end
-
-      methods.each do |meth|
-        define_method("cached_#{meth}") do
-          Rails.cache.fetch method_cache_key(meth) do
-            send(meth)
-          end
-        end
-      end
-    end
-
-    # Cached class method
-    # Should expire on any instance save
-    def with_class_method(*methods)
-      self.cached_class_methods = methods.inject({}) { |indices, meth| indices[meth] = {} }
-
-      class_eval do
-        after_commit :expire_class_method_cache, on: :update
-      end
-
-      methods.each do |meth|
-        define_singleton_method("cached_#{meth}") do |*args|
-          self.cached_class_methods["#{meth}"] ||= []
-          self.cached_class_methods["#{meth}"] << args
-          Rails.cache.fetch class_method_cache_key(meth, args) do
-            self.method(meth).arity == 0 ? send(meth) : send(meth, *args)
-          end
-        end
-      end
-    end
+  module AssocationCache
 
     def with_association(*association_names)
       self.cached_associations = association_names
@@ -165,5 +89,4 @@ module Cacheable
     end
 
   end
-
 end

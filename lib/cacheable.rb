@@ -1,12 +1,24 @@
 require 'uri'
-require "cacheable/cache_types"
-require "cacheable/class_methods"
-require "cacheable/instance_methods"
+require "cacheable/caches"
+require "cacheable/keys"
+require "cacheable/expiry"
 
 module Cacheable
   def self.included(base)
-    base.extend(Cacheable::CacheTypes)
-    base.extend(Cacheable::ClassMethods)
-    base.send :include, Cacheable::InstanceMethods
+    base.extend(Cacheable::Caches)
+    base.send :include, Cacheable::Keys
+    base.send :include, Cacheable::Expiry
+
+    base.class_eval do
+      def self.model_cache(&block)
+        class_attribute :cached_key,
+                        :cached_indices,
+                        :cached_methods,
+                        :cached_class_methods,
+                        :cached_associations
+        instance_exec &block
+      end
+    end
   end
+
 end
