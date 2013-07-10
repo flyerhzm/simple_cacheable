@@ -76,7 +76,7 @@ Gotchas
 
 Caching, and caching invalidation specifically, can be hard and confusing.  Simple Cacheable methods should
 expire correctly in most cases.  Be careful using `with_method` and `with_class_method`, they should
-specifically not be used to return collections.  This is demonstrated well Tobias Lutke's presentation: [Rockstar Memcaching][2].
+specifically not be used to return collections.  This is demonstrated well in Tobias Lutke's presentation: [Rockstar Memcaching][2].
 
 Copyright © 2011 Richard Huang (flyerhzm@gmail.com), released under the MIT license
 
