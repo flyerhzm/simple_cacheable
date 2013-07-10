@@ -1,0 +1,7 @@
+1.3.3
+* File Reorganization
+* Rails 4 Compatibility
+* Class Method Caching can accept arguments
+* Class Method Caching
+* has_one through association caching
+* has_and_belongs_to_many association caching
