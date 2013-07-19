@@ -175,6 +175,11 @@ describe Cacheable do
       image.save
     end
 
+    it "new image fails with missing association" do
+      image = @group1.images.new
+      image.expects(:do_something).once
+      image.save
+    end
   end
 
 end
