@@ -36,7 +36,9 @@ module Cacheable
                     # cached_viewable.expire_association_cache
                     send("cached_#{reverse_association.name}").expire_association_cache(association_name)
                   else
-                    send(reverse_association.name).send(reverse_through_association.name).expire_association_cache(association_name)
+                    if send(reverse_association.name)
+                      send(reverse_association.name).send(reverse_through_association.name).expire_association_cache(association_name)
+                    end
                   end
                 end
               end
