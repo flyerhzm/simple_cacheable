@@ -65,6 +65,7 @@ RSpec.configure do |config|
       create_table :images do |t|
         t.integer :viewable_id
         t.string :viewable_type
+        t.string :name
       end
 
       create_table :tags do |t|
