@@ -20,8 +20,9 @@ module Cacheable
           if through_reflection_name = association.options[:through]
             through_association = self.reflect_on_association(through_reflection_name)
 
-            # FIXME it should be the only reflection but I'm not 100% positive
-            reverse_through_association = through_association.klass.reflect_on_all_associations(:belongs_to).first
+            reverse_through_association = through_association.klass.reflect_on_all_associations(:belongs_to).detect do |assoc|
+              assoc.klass.ancestors.include?(Cacheable) && assoc.klass.reflect_on_association(association.name)
+            end
 
             # In a through association it doesn't have to be a belongs_to
             reverse_association = association.klass.reflect_on_all_associations(:belongs_to).find { |reverse_association|
@@ -33,7 +34,6 @@ module Cacheable
 
                 define_method("expire_#{association_name}_cache") do
                   if respond_to? "expire_#{reverse_association.name}_cache".to_sym
-                    # cached_viewable.expire_association_cache
                     send("cached_#{reverse_association.name}").expire_association_cache(association_name)
                   else
                     if send(reverse_association.name) && send(reverse_association.name).respond_to?(reverse_through_association.name)

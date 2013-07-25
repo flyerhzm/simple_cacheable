@@ -25,6 +25,10 @@ module Cacheable
       end
     end
 
+    # TODO: cached_indicies are empty
+    # Single table inheritance
+    # user had indices
+    # artist did not
     def expire_all_attribute_cache
       self.class.cached_indices.each do |attribute, values|
         value = self.send(attribute)
