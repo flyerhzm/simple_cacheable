@@ -5,6 +5,6 @@ class Image < ActiveRecord::Base
   after_commit :do_something
 
   def do_something
-    puts "hi"
+    e = 1337
   end
 end

@@ -1,6 +1,7 @@
 class Post < ActiveRecord::Base
   include Cacheable
 
+  belongs_to :location
   belongs_to :user
 
   has_many :comments, :as => :commentable
