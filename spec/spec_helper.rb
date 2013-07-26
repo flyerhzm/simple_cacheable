@@ -7,6 +7,7 @@ require 'rspec'
 require 'mocha/api'
 require 'memcached'
 require 'cacheable'
+require 'byebug'
 
 # MODELS = File.join(File.dirname(__FILE__), "models")
 # $LOAD_PATH.unshift(MODELS)
@@ -24,6 +25,7 @@ require 'models/image'
 require 'models/tag'
 require 'models/post'
 require 'models/user'
+require 'models/descendant'
 
 ActiveRecord::Migration.verbose = false
 ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database => ':memory:')

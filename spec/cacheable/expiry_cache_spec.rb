@@ -78,4 +78,36 @@ describe Cacheable do
 
   end
 
+  context "single table inheritance bug" do
+    context "user" do
+      it "has cached indices" do
+        User.cached_indices.should_not be_nil
+      end
+
+      it "has specific cached indices" do
+        User.cached_indices.keys.should include "login"
+      end
+
+      it "should have cached_methods" do
+        User.cached_methods.should_not be_nil
+      end
+    end
+
+    context "descendant" do
+
+      it "should have cached indices hash" do
+        Descendant.cached_indices.should_not be_nil
+      end
+
+      it "has specific cached indices" do
+        Descendant.cached_indices.keys.should include "login"
+      end
+
+      it "should have cached_methods" do
+        Descendant.cached_methods.should_not be_nil
+      end
+
+    end
+  end
+
 end

@@ -1,3 +1,6 @@
+# TODO:
+# subclasses need to inherit the entire class attribute
+# And add to it.  not overwrite it
 module Cacheable
   module AttributeCache
     def with_attribute(*attributes)
