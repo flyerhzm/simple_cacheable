@@ -1,3 +1,9 @@
+1.4.0
+* Fixed after_commit silent failure for assocations that didn't exist
+* Fixed association for has_many through when there are several belongs_to relationships
+* Fixed multiple calls to model_cache
+* Fixed STI/inheritance use cases
+
 1.3.3
 * File Reorganization
 * Rails 4 Compatibility
