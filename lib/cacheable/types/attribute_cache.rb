@@ -1,7 +1,10 @@
 module Cacheable
   module AttributeCache
     def with_attribute(*attributes)
-      self.cached_indices = attributes.inject({}) { |indices, attribute| indices[attribute] = {} }
+      self.cached_indices ||= {}
+      self.cached_indices = self.cached_indices.merge(attributes.each_with_object({}) {
+        |attribute, indices| indices[attribute] = {}
+      })
 
       class_eval do
         after_commit :expire_attribute_cache, :on => :update

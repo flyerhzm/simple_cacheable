@@ -3,10 +3,12 @@ require 'spec_helper'
 describe Cacheable do
   let(:cache) { Rails.cache }
   let(:user)  { User.create(:login => 'flyerhzm') }
+  let(:descendant) { Descendant.create(:login => "scotterc")}
 
   before :all do
     @post1 = user.posts.create(:title => 'post1')
     @post2 = user.posts.create(:title => 'post2')
+    @post3 = descendant.posts.create(:title => 'post3')
   end
 
   before :each do
@@ -54,6 +56,33 @@ describe Cacheable do
         Post.find_cached_all_by_user_id(user.id).should == [@post1, @post2]
       end
 
+    end
+  end
+
+  context "descendant" do
+    it "should not cache Descendant.find_by_login" do
+      Rails.cache.read("descendants/attribute/login/scotterc").should be_nil
+    end
+
+    it "should cache by Descendant.find_by_login" do
+      Descendant.find_cached_by_login("scotterc").should == descendant
+      Rails.cache.read("descendants/attribute/login/scotterc").should == descendant
+    end
+
+    it "should get cached by Descendant.find_by_login multiple times" do
+      Descendant.find_cached_by_login("scotterc")
+      Descendant.find_cached_by_login("scotterc").should == descendant
+    end
+
+    it "should escape whitespace" do
+      new_descendant = Descendant.create(:login => "descendant space")
+      Descendant.find_cached_by_login("descendant space").should == new_descendant
+    end
+
+    it "maintains cached methods" do
+      Rails.cache.read("descendants/#{descendant.id}/method/name").should be_nil
+      descendant.cached_name.should == descendant.name
+      Rails.cache.read("descendants/#{descendant.id}/method/name").should == descendant.name
     end
   end
 

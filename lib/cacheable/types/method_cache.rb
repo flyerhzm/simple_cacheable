@@ -1,7 +1,8 @@
 module Cacheable
   module MethodCache
     def with_method(*methods)
-      self.cached_methods = methods
+      self.cached_methods ||= []
+      self.cached_methods += methods
 
       class_eval do
         after_commit :expire_method_cache, :on => :update
