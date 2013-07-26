@@ -12,9 +12,15 @@ class User < ActiveRecord::Base
     with_attribute :login
     with_method :last_post
     with_association :posts, :account, :images, :group
+    with_class_method :default_name
   end
 
   def last_post
     posts.last
   end
+
+  def self.default_name
+    "flyerhzm"
+  end
+
 end

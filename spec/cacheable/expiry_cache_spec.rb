@@ -3,11 +3,13 @@ require 'spec_helper'
 describe Cacheable do
   let(:cache) { Rails.cache }
   let(:user)  { User.create(:login => 'flyerhzm') }
+  let(:descendant) { Descendant.create(:login => "scotterc")}
 
   before :all do
     @post1 = user.posts.create(:title => 'post1')
     user2 = User.create(:login => 'PelegR')
     user2.posts.create(:title => 'post3')
+    @post3 = descendant.posts.create(:title => 'post3')
   end
 
   before :each do
@@ -68,7 +70,6 @@ describe Cacheable do
       Rails.cache.read("posts/class_method/retrieve_with_both/1+1").should be_nil
     end
 
-    # TODO: should we cache empty arrays?
     it "should delete associations cache" do
       user.cached_images
       Rails.cache.read("users/#{user.id}/association/images").should_not be_nil
@@ -76,6 +77,91 @@ describe Cacheable do
       Rails.cache.read("users/#{user.id}/association/images").should be_nil
     end
 
+  end
+
+  context "single table inheritance bug" do
+    context "user" do
+      it "has cached indices" do
+        User.cached_indices.should_not be_nil
+      end
+
+      it "has specific cached indices" do
+        User.cached_indices.keys.should include :login
+        User.cached_indices.keys.should_not include :email
+      end
+
+      it "should have cached_methods" do
+        User.cached_methods.should_not be_nil
+        User.cached_methods.should == [:last_post]
+      end
+    end
+
+    context "expiring class_method cache" do
+      it "expires correctly from inherited attributes" do
+        Rails.cache.read("users/class_method/default_name").should be_nil
+        User.cached_default_name
+        Rails.cache.read("users/class_method/default_name").should == "flyerhzm"
+        user.expire_model_cache
+        Rails.cache.read("users/class_method/default_name").should be_nil
+      end
+    end
+
+    context "descendant" do
+
+      it "should have cached indices hash" do
+        Descendant.cached_indices.should_not be_nil
+      end
+
+      it "has specific cached indices" do
+        Descendant.cached_indices.keys.should include :login
+        Descendant.cached_indices.keys.should include :email
+      end
+
+      it "should have cached_methods" do
+        Descendant.cached_methods.should_not be_nil
+        Descendant.cached_methods.should == [:last_post, :name]
+      end
+
+      context "expiring method cache" do
+        it "expires correctly from inherited attributes" do
+          Rails.cache.read("descendants/#{descendant.id}/method/last_post").should be_nil
+          descendant.cached_last_post.should == descendant.last_post
+          Rails.cache.read("descendants/#{descendant.id}/method/last_post").should == descendant.last_post
+          descendant.expire_model_cache
+          Rails.cache.read("descendants/#{descendant.id}/method/last_post").should be_nil
+        end
+      end
+
+      context "expiring attribute cache" do
+        it "expires correctly from inherited attributes" do
+          Rails.cache.read("descendants/attribute/login/scotterc").should be_nil
+          Descendant.find_cached_by_login("scotterc").should == descendant
+          Rails.cache.read("descendants/attribute/login/scotterc").should == descendant
+          descendant.expire_model_cache
+          Rails.cache.read("descendants/attribute/login/scotterc").should be_nil
+        end
+      end
+
+      context "expiring association cache" do
+        it "expires correctly from inherited attributes" do
+          Rails.cache.read("descendants/#{descendant.id}/association/posts").should be_nil
+          descendant.cached_posts.should == [@post3]
+          Rails.cache.read("descendants/#{descendant.id}/association/posts").should == [@post3]
+          descendant.expire_model_cache
+          Rails.cache.read("descendants/#{descendant.id}/association/posts").should be_nil
+        end
+      end
+
+      context "expiring class_method cache" do
+        it "expires correctly from inherited attributes" do
+          Rails.cache.read("descendants/class_method/default_name").should be_nil
+          Descendant.cached_default_name
+          Rails.cache.read("descendants/class_method/default_name").should == "ScotterC"
+          descendant.expire_model_cache
+          Rails.cache.read("descendants/class_method/default_name").should be_nil
+        end
+      end
+    end
   end
 
 end

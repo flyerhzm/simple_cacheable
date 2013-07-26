@@ -8,10 +8,6 @@ require 'mocha/api'
 require 'memcached'
 require 'cacheable'
 
-# MODELS = File.join(File.dirname(__FILE__), "models")
-# $LOAD_PATH.unshift(MODELS)
-# Dir[ File.join(MODELS, "*.rb") ].each { |f| require f }
-
 # It needs this order otherwise cacheable throws
 # errors when looking for reflection classes
 # Specifically, post can't be before tag
@@ -24,6 +20,7 @@ require 'models/image'
 require 'models/tag'
 require 'models/post'
 require 'models/user'
+require 'models/descendant'
 
 ActiveRecord::Migration.verbose = false
 ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database => ':memory:')
@@ -46,6 +43,7 @@ RSpec.configure do |config|
     ::ActiveRecord::Schema.define(:version => 1) do
       create_table :users do |t|
         t.string :login
+        t.string :email
       end
 
       create_table :accounts do |t|
