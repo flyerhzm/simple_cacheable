@@ -16,6 +16,7 @@ require 'cacheable'
 # errors when looking for reflection classes
 # Specifically, post can't be before tag
 # and user can't be before post
+require 'models/location'
 require 'models/account'
 require 'models/group'
 require 'models/comment'
@@ -55,6 +56,7 @@ RSpec.configure do |config|
       create_table :posts do |t|
         t.integer :user_id
         t.string :title
+        t.integer :location_id
       end
 
       create_table :comments do |t|
@@ -79,6 +81,10 @@ RSpec.configure do |config|
 
       create_table :groups do |t|
         t.string :name
+      end
+
+      create_table :locations do |t|
+        t.string :city
       end
     end
 

@@ -15,6 +15,7 @@ describe Cacheable do
     @tag2 = @post1.tags.create(title: "Caching")
     @group1 = Group.create(name: "Ruby On Rails")
     @account = user.create_account(group: @group1)
+    @location = @post1.create_location(city: "New York")
   end
 
   before :each do
@@ -180,6 +181,15 @@ describe Cacheable do
       image.expects(:do_something).once
       image.save
     end
+  end
+
+  describe "belongs_to bug" do
+
+    it "shouldn't hit location" do
+      @location.expects(:expire_association_cache).with(:images).never
+      user.save
+    end
+
   end
 
 end
