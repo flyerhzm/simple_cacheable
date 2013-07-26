@@ -13,4 +13,3 @@ platforms :jruby do
   gem "activerecord-jdbcsqlite3-adapter"
   gem "jruby-memcached"
 end
-gem 'byebug'

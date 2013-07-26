@@ -7,11 +7,6 @@ require 'rspec'
 require 'mocha/api'
 require 'memcached'
 require 'cacheable'
-require 'byebug'
-
-# MODELS = File.join(File.dirname(__FILE__), "models")
-# $LOAD_PATH.unshift(MODELS)
-# Dir[ File.join(MODELS, "*.rb") ].each { |f| require f }
 
 # It needs this order otherwise cacheable throws
 # errors when looking for reflection classes
