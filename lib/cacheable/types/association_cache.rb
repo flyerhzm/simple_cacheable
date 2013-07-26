@@ -2,7 +2,8 @@ module Cacheable
   module AssocationCache
 
     def with_association(*association_names)
-      self.cached_associations = association_names
+      self.cached_associations ||= []
+      self.cached_associations += association_names
 
       association_names.each do |association_name|
         association = reflect_on_association(association_name)

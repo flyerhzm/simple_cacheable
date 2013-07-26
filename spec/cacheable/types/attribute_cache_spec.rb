@@ -8,6 +8,7 @@ describe Cacheable do
   before :all do
     @post1 = user.posts.create(:title => 'post1')
     @post2 = user.posts.create(:title => 'post2')
+    @post3 = descendant.posts.create(:title => 'post3')
   end
 
   before :each do

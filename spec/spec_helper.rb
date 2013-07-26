@@ -48,6 +48,7 @@ RSpec.configure do |config|
     ::ActiveRecord::Schema.define(:version => 1) do
       create_table :users do |t|
         t.string :login
+        t.string :email
       end
 
       create_table :accounts do |t|

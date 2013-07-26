@@ -8,16 +8,20 @@ module Cacheable
     base.extend(Cacheable::Caches)
     base.send :include, Cacheable::Keys
     base.send :include, Cacheable::Expiry
-
+    base.send :extend,  ClassMethods
     base.class_eval do
-      def self.model_cache(&block)
-        class_attribute :cached_key,
+      class_attribute   :cached_key,
                         :cached_indices,
                         :cached_methods,
                         :cached_class_methods,
                         :cached_associations
-        instance_exec &block
-      end
+    end
+
+  end
+
+  module ClassMethods
+    def model_cache(&block)
+      instance_exec &block
     end
   end
 
