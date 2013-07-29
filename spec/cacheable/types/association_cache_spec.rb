@@ -190,6 +190,28 @@ describe Cacheable do
       user.save
     end
 
+    context "with a user" do
+      it "should not hit expire_association_cache on save" do
+        account = Account.create
+        user = User.new
+        user.expects(:expire_association_cache)
+        account.stubs(:user).returns user
+        account.save
+      end
+    end
+
+    context "without a user" do
+      it "should not hit expire_association_cache on save" do
+        account = Account.create
+        obj = mock "object"
+        obj.stubs(:nil?).returns true
+        account.stubs(:user).returns obj
+        obj.expects(:expire_association_cache).never
+        account.expire_account_cache
+      end
+
+    end
+
   end
 
 end

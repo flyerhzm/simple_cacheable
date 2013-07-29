@@ -75,7 +75,7 @@ module Cacheable
               define_method "expire_#{association_name}_cache" do
                 if respond_to? "cached_#{reverse_association.name}".to_sym
                   send("cached_#{reverse_association.name}").expire_association_cache(association_name)
-                else
+                elsif not send("#{reverse_association.name}").nil?
                   send("#{reverse_association.name}").expire_association_cache(association_name)
                 end
               end
