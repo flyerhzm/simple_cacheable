@@ -34,10 +34,13 @@ module Cacheable
                 after_commit "expire_#{association_name}_cache".to_sym
 
                 define_method("expire_#{association_name}_cache") do
+
                   if respond_to? "expire_#{reverse_association.name}_cache".to_sym
-                    send("cached_#{reverse_association.name}").expire_association_cache(association_name)
-                  else
-                    if send(reverse_association.name) && send(reverse_association.name).respond_to?(reverse_through_association.name)
+                    unless send("cached_#{reverse_association.name}").nil?
+                      send("cached_#{reverse_association.name}").expire_association_cache(association_name)
+                    end
+                  elsif !send(reverse_association.name).nil?
+                    if send(reverse_association.name).respond_to?(reverse_through_association.name)
                       send(reverse_association.name).send(reverse_through_association.name).expire_association_cache(association_name)
                     end
                   end
@@ -55,9 +58,11 @@ module Cacheable
 
                 define_method "expire_#{association_name}_cache" do
                   if respond_to? "cached_#{reverse_association.name}".to_sym
-                    # cached_viewable.expire_association_cache
-                    send("cached_#{reverse_association.name}").expire_association_cache(association_name)
-                  else
+                    unless send("cached_#{reverse_association.name}").nil?
+                      # cached_viewable.expire_association_cache
+                      send("cached_#{reverse_association.name}").expire_association_cache(association_name)
+                    end
+                  elsif !send("#{reverse_association.name}").nil?
                     send("#{reverse_association.name}").each do |assoc|
                       assoc.expire_association_cache(association_name)
                     end
@@ -74,8 +79,10 @@ module Cacheable
 
               define_method "expire_#{association_name}_cache" do
                 if respond_to? "cached_#{reverse_association.name}".to_sym
-                  send("cached_#{reverse_association.name}").expire_association_cache(association_name)
-                else
+                  unless send("cached_#{reverse_association.name}").nil?
+                    send("cached_#{reverse_association.name}").expire_association_cache(association_name)
+                  end
+                elsif !send("#{reverse_association.name}").nil?
                   send("#{reverse_association.name}").expire_association_cache(association_name)
                 end
               end
