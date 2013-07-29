@@ -40,7 +40,7 @@ module Cacheable
                       send("cached_#{reverse_association.name}").expire_association_cache(association_name)
                     end
                   elsif !send(reverse_association.name).nil?
-                    if send(reverse_association.name).respond_to?(reverse_through_association.name)
+                    if send(reverse_association.name).respond_to?(reverse_through_association.name) && !send(reverse_association.name).send(reverse_through_association.name).nil?
                       send(reverse_association.name).send(reverse_through_association.name).expire_association_cache(association_name)
                     end
                   end
@@ -64,6 +64,7 @@ module Cacheable
                     end
                   elsif !send("#{reverse_association.name}").nil?
                     send("#{reverse_association.name}").each do |assoc|
+                      next if assoc.nil?
                       assoc.expire_association_cache(association_name)
                     end
                   end
