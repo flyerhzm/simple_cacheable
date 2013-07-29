@@ -26,11 +26,3 @@ module Cacheable
   end
 
 end
-
-
-# class NilClass
-#   def expire_association_cache(name)
-#     byebug
-#     a = 1
-#   end
-# end
