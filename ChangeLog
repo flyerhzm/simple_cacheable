@@ -1,3 +1,6 @@
+1.4.1
+* Fixed all silent failures for assocations that didn't exist
+
 1.4.0
 * Fixed after_commit silent failure for assocations that didn't exist
 * Fixed association for has_many through when there are several belongs_to relationships
