@@ -214,4 +214,13 @@ describe Cacheable do
 
   end
 
+  # https://github.com/Shopify/identity_cache/pull/55/files
+  describe "rails association cache" do
+    it "should not load associated records" do
+      user.posts
+      cached_user = User.find_cached(user.id)
+      cached_user.posts.loaded?.should be_false
+    end
+  end
+
 end
