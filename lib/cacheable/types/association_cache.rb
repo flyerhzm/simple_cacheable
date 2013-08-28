@@ -40,6 +40,7 @@ module Cacheable
 
       define_method("cached_#{association_name}") do
         Rails.cache.fetch belong_association_cache_key(association_name, polymorphic) do
+          association_cache.delete(association_name)
           send(association_name)
         end
       end
