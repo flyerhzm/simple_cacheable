@@ -23,10 +23,11 @@ module Cacheable
           define_method("cached_#{association_name}") do
             Rails.cache.fetch have_association_cache_key(association_name) do
               association_cache.delete(association_name)
-              if send(association_name).respond_to?(:to_a)
-                send(association_name).to_a
+              associated = send(association_name)
+              if associated.respond_to?(:to_a) && !associated.nil?
+                associated.to_a
               else
-                send(association_name)
+                associated
               end
             end
           end
