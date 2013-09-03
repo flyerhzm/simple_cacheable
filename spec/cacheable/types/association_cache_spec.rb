@@ -3,10 +3,13 @@ require 'spec_helper'
 describe Cacheable do
   let(:cache) { Rails.cache }
   let(:user)  { User.create(:login => 'flyerhzm') }
+  let(:user2)  { User.create(:login => 'ScotterC') }
+
 
   before :all do
     @post1 = user.posts.create(:title => 'post1')
     @post2 = user.posts.create(:title => 'post2')
+    @post3 = Post.create
     @image1 = @post1.images.create
     @image2 = @post1.images.create
     @comment1 = @post1.comments.create
@@ -44,6 +47,10 @@ describe Cacheable do
         @comment1.cached_commentable.should == @post1
         Rails.cache.read("posts/#{@post1.id}").should == @post1
       end
+
+      it "should return nil if there are none" do
+        @post3.cached_user.should be_nil
+      end
     end
 
     context "has_many" do
@@ -59,6 +66,10 @@ describe Cacheable do
       it "should cache User#posts multiple times" do
         user.cached_posts
         user.cached_posts.should == [@post1, @post2]
+      end
+
+      it "should return empty if there are none" do
+        user2.cached_posts.should == []
       end
     end
 
@@ -76,6 +87,10 @@ describe Cacheable do
         @post1.cached_comments
         @post1.cached_comments.should == [@comment1, @comment2]
       end
+
+      it "should return empty if there are none" do
+        @post3.cached_comments.should == []
+      end
     end
 
     context "has_one" do
@@ -91,6 +106,10 @@ describe Cacheable do
       it "should cache User#posts multiple times" do
         user.cached_account
         user.cached_account.should == @account
+      end
+
+      it "should return nil if there are none" do
+        user2.cached_account.should be_nil
       end
     end
 
@@ -117,6 +136,10 @@ describe Cacheable do
           Rails.cache.read("users/#{user.id}/association/images").should == [@image1, @image2, @image3]
         end
       end
+
+      it "should return empty if there are none" do
+        user2.cached_images.should == []
+      end
     end
 
     context "has_one through belongs_to" do
@@ -132,6 +155,10 @@ describe Cacheable do
       it "should cache User#group multiple times" do
         user.cached_group
         user.cached_group.should == @group1
+      end
+
+      it "should return nil if there are none" do
+        user2.cached_group.should be_nil
       end
 
     end
@@ -150,6 +177,10 @@ describe Cacheable do
       it "should handle multiple requests" do
         @post1.cached_tags
         @post1.cached_tags.should == [@tag1, @tag2]
+      end
+
+      it "should return empty if there are none" do
+        @post3.cached_tags.should == []
       end
 
       context "expiry" do
