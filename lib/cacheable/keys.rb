@@ -37,7 +37,7 @@ module Cacheable
 
       def belong_association_cache_key(name, polymorphic=nil)
         name = name.to_s if name.is_a?(Symbol)
-        if polymorphic
+        if polymorphic && self.send("#{name}_type").present?
           "#{self.send("#{name}_type").tableize}/#{self.send("#{name}_id")}"
         else
           "#{name.tableize}/#{self.send(name + "_id")}"
