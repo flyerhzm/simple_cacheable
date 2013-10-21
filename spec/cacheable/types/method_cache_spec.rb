@@ -79,6 +79,20 @@ describe Cacheable do
       user.cached_last_post.should == user.last_post
       user.cached_last_post.should == user.last_post
     end
+
+    describe "bad iv names stripped" do
+      it "should deal with queries" do
+        user.instance_variable_get("@cached_bad_iv_name_bang").should be_nil
+        user.cached_bad_iv_name!.should == 42
+        user.instance_variable_get("@cached_bad_iv_name_bang").should == 42
+      end
+
+      it "should deal with bangs" do
+        user.instance_variable_get("@cached_bad_iv_name_query").should be_nil
+        user.cached_bad_iv_name?.should == 44
+        user.instance_variable_get("@cached_bad_iv_name_query").should == 44
+      end
+    end
   end
 
 end

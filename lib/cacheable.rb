@@ -19,6 +19,10 @@ module Cacheable
     end
   end
 
+  def self.escape_punctuation(string)
+    string.sub(/\?\Z/, '_query').sub(/!\Z/, '_bang')
+  end
+
   module ClassMethods
     def model_cache(&block)
       instance_exec &block

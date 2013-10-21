@@ -10,7 +10,7 @@ class User < ActiveRecord::Base
   model_cache do
     with_key
     with_attribute :login
-    with_method :last_post
+    with_method :last_post, :bad_iv_name!, :bad_iv_name?
     with_association :posts, :account, :images, :group
     with_class_method :default_name
   end
@@ -21,6 +21,14 @@ class User < ActiveRecord::Base
 
   def self.default_name
     "flyerhzm"
+  end
+
+  def bad_iv_name!
+    42
+  end
+
+  def bad_iv_name?
+    44
   end
 
 end
