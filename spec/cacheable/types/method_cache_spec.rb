@@ -16,51 +16,68 @@ describe Cacheable do
     user.reload
   end
 
-  context "with_method" do
-    it "should not cache User.last_post" do
-      Rails.cache.read("users/#{user.id}/method/last_post").should be_nil
+  it "should not cache User.last_post" do
+    Rails.cache.read("users/#{user.id}/method/last_post").should be_nil
+  end
+
+  it "should cache User#last_post" do
+    user.cached_last_post.should == user.last_post
+    Rails.cache.read("users/#{user.id}/method/last_post").should == user.last_post
+  end
+
+  it "should cache User#last_post multiple times" do
+    user.cached_last_post
+    user.cached_last_post.should == user.last_post
+  end
+
+  context "descendant should inherit methods" do
+    it "should not cache Descendant.last_post" do
+      Rails.cache.read("descendants/#{descendant.id}/method/last_post").should be_nil
     end
 
-    it "should cache User#last_post" do
+    it "should cache Descendant#last_post" do
+      descendant.cached_last_post.should == descendant.last_post
+      Rails.cache.read("descendants/#{descendant.id}/method/last_post").should == descendant.last_post
+    end
+
+    it "should cache Descendant#last_post multiple times" do
+      descendant.cached_last_post
+      descendant.cached_last_post.should == descendant.last_post
+    end
+
+    context "as well as new methods" do
+      it "should not cache Descendant.name" do
+        Rails.cache.read("descendants/#{descendant.id}/method/name").should be_nil
+      end
+
+      it "should cache Descendant#name" do
+        descendant.cached_name.should == descendant.name
+        Rails.cache.read("descendants/#{descendant.id}/method/name").should == descendant.name
+      end
+
+      it "should cache Descendant#name multiple times" do
+        descendant.cached_name
+        descendant.cached_name.should == descendant.name
+      end
+    end
+  end
+
+  describe "memoization" do
+    before :each do
+      user.instance_variable_set("@cached_last_post", nil)
+      user.expire_model_cache
+    end
+
+    it "memoizes cache calls" do
+      user.instance_variable_get("@cached_last_post").should be_nil
       user.cached_last_post.should == user.last_post
-      Rails.cache.read("users/#{user.id}/method/last_post").should == user.last_post
+      user.instance_variable_get("@cached_last_post").should == user.last_post
     end
 
-    it "should cache User#last_post multiple times" do
-      user.cached_last_post
+    it "hits the cache only once" do
+      Rails.cache.expects(:fetch).returns(user.last_post).once
       user.cached_last_post.should == user.last_post
-    end
-
-    context "descendant should inherit methods" do
-      it "should not cache Descendant.last_post" do
-        Rails.cache.read("descendants/#{descendant.id}/method/last_post").should be_nil
-      end
-
-      it "should cache Descendant#last_post" do
-        descendant.cached_last_post.should == descendant.last_post
-        Rails.cache.read("descendants/#{descendant.id}/method/last_post").should == descendant.last_post
-      end
-
-      it "should cache Descendant#last_post multiple times" do
-        descendant.cached_last_post
-        descendant.cached_last_post.should == descendant.last_post
-      end
-
-      context "as well as new methods" do
-        it "should not cache Descendant.name" do
-          Rails.cache.read("descendants/#{descendant.id}/method/name").should be_nil
-        end
-
-        it "should cache Descendant#name" do
-          descendant.cached_name.should == descendant.name
-          Rails.cache.read("descendants/#{descendant.id}/method/name").should == descendant.name
-        end
-
-        it "should cache Descendant#name multiple times" do
-          descendant.cached_name
-          descendant.cached_name.should == descendant.name
-        end
-      end
+      user.cached_last_post.should == user.last_post
     end
   end
 

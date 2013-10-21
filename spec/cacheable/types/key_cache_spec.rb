@@ -9,20 +9,18 @@ describe Cacheable do
     user.reload
   end
 
-  context "with_key" do
-    it "should not cache key" do
-      Rails.cache.read("users/#{user.id}").should be_nil
-    end
+  it "should not cache key" do
+    Rails.cache.read("users/#{user.id}").should be_nil
+  end
 
-    it "should cache by User#id" do
-      User.find_cached(user.id).should == user
-      Rails.cache.read("users/#{user.id}").should == user
-    end
+  it "should cache by User#id" do
+    User.find_cached(user.id).should == user
+    Rails.cache.read("users/#{user.id}").should == user
+  end
 
-    it "should get cached by User#id multiple times" do
-      User.find_cached(user.id)
-      User.find_cached(user.id).should == user
-    end
+  it "should get cached by User#id multiple times" do
+    User.find_cached(user.id)
+    User.find_cached(user.id).should == user
   end
 
 end
