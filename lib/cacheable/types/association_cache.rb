@@ -20,16 +20,22 @@ module Cacheable
             build_cache_has_many(association, association_name)
           end
 
+          method_name = "cached_#{association_name}"
           define_method("cached_#{association_name}") do
-            Rails.cache.fetch have_association_cache_key(association_name) do
-              association_cache.delete(association_name)
-              associated = send(association_name)
-              if associated.respond_to?(:to_a) && !associated.nil?
-                associated.to_a
-              else
-                associated
-              end
+            if instance_variable_get("@#{method_name}").nil?
+              instance_variable_set("@#{method_name}",
+                (Rails.cache.fetch have_association_cache_key(association_name) do
+                  association_cache.delete(association_name)
+                  associated = send(association_name)
+                  if associated.respond_to?(:to_a) && !associated.nil?
+                    associated.to_a
+                  else
+                    associated
+                  end
+                end)
+              )
             end
+            instance_variable_get("@#{method_name}")
           end
         end
       end
@@ -39,11 +45,17 @@ module Cacheable
       polymorphic = association.options[:polymorphic]
       polymorphic ||= false
 
-      define_method("cached_#{association_name}") do
-        Rails.cache.fetch belong_association_cache_key(association_name, polymorphic) do
-          association_cache.delete(association_name)
-          send(association_name)
+      method_name = "cached_#{association_name}"
+      define_method(method_name) do
+        if instance_variable_get("@#{method_name}").nil?
+          instance_variable_set("@#{method_name}",
+            (Rails.cache.fetch belong_association_cache_key(association_name, polymorphic) do
+              association_cache.delete(association_name)
+              send(association_name)
+            end)
+          )
         end
+        instance_variable_get("@#{method_name}")
       end
     end
 

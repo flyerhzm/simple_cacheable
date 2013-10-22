@@ -92,7 +92,7 @@ describe Cacheable do
 
       it "should have cached_methods" do
         User.cached_methods.should_not be_nil
-        User.cached_methods.should == [:last_post]
+        User.cached_methods.should == [:last_post, :bad_iv_name!, :bad_iv_name?]
       end
     end
 
@@ -119,7 +119,7 @@ describe Cacheable do
 
       it "should have cached_methods" do
         Descendant.cached_methods.should_not be_nil
-        Descendant.cached_methods.should == [:last_post, :name]
+        Descendant.cached_methods.should == [:last_post, :bad_iv_name!, :bad_iv_name?, :name]
       end
 
       context "expiring method cache" do

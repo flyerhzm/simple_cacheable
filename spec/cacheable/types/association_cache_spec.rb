@@ -27,6 +27,11 @@ describe Cacheable do
   end
 
   context "with_association" do
+    before :each do
+      @post1.instance_variable_set("@cached_user", nil)
+      @comment1.instance_variable_set("@cached_commentable", nil)
+    end
+
     context "belongs_to" do
       it "should not cache association" do
         Rails.cache.read("users/#{user.id}").should be_nil
@@ -129,6 +134,10 @@ describe Cacheable do
       end
 
       context "expiry" do
+        before :each do
+          user.instance_variable_set("@cached_images", nil)
+        end
+
         it "should have the correct collection" do
           @image3 = @post1.images.create
           Rails.cache.read("users/#{user.id}/association/images").should be_nil
@@ -184,6 +193,10 @@ describe Cacheable do
       end
 
       context "expiry" do
+        before :each do
+          @post1.instance_variable_set("@cached_tags", nil)
+        end
+
         it "should have the correct collection" do
           @tag3 = @post1.tags.create!(title: "Invalidation is hard")
           Rails.cache.read("posts/#{@post1.id}/association/tags").should be_nil
@@ -251,6 +264,84 @@ describe Cacheable do
       user.posts
       cached_user = User.find_cached(user.id)
       cached_user.posts.loaded?.should be_false
+    end
+  end
+
+  describe "memoization" do
+    describe "belongs to" do
+      before :each do
+        @post1.instance_variable_set("@cached_user", nil)
+        @post1.expire_model_cache
+      end
+
+      it "memoizes cache calls" do
+        @post1.instance_variable_get("@cached_user").should be_nil
+        @post1.cached_user.should == @post1.user
+        @post1.instance_variable_get("@cached_user").should == @post1.user
+      end
+
+      it "hits the cache only once" do
+        Rails.cache.expects(:fetch).returns(@post1.user).once
+        @post1.cached_user.should == @post1.user
+        @post1.cached_user.should == @post1.user
+      end
+    end
+
+    describe "has through" do
+      before :each do
+        user.instance_variable_set("@cached_images", nil)
+        user.expire_model_cache
+      end
+
+      it "memoizes cache calls" do
+        user.instance_variable_get("@cached_images").should be_nil
+        user.cached_images.should == user.images
+        user.instance_variable_get("@cached_images").should == user.images
+      end
+
+      it "hits the cache only once" do
+        Rails.cache.expects(:fetch).returns(user.images).once
+        user.cached_images.should == user.images
+        user.cached_images.should == user.images
+      end
+    end
+
+    describe "has and belongs to many" do
+      before :each do
+        @post1.instance_variable_set("@cached_tags", nil)
+        @post1.expire_model_cache
+      end
+
+      it "memoizes cache calls" do
+        @post1.instance_variable_get("@cached_tags").should be_nil
+        @post1.cached_tags.should == @post1.tags
+        @post1.instance_variable_get("@cached_tags").should == @post1.tags
+      end
+
+      it "hits the cache only once" do
+        Rails.cache.expects(:fetch).returns(@post1.tags).once
+        @post1.cached_tags.should == @post1.tags
+        @post1.cached_tags.should == @post1.tags
+      end
+    end
+
+    describe "one to many" do
+      before :each do
+        user.instance_variable_set("@cached_posts", nil)
+        user.expire_model_cache
+      end
+
+      it "memoizes cache calls" do
+        user.instance_variable_get("@cached_posts").should be_nil
+        user.cached_posts.should == user.posts
+        user.instance_variable_get("@cached_posts").should == user.posts
+      end
+
+      it "hits the cache only once" do
+        Rails.cache.expects(:fetch).returns(user.posts).once
+        user.cached_posts.should == user.posts
+        user.cached_posts.should == user.posts
+      end
     end
   end
 
