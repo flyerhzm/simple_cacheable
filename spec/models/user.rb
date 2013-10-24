@@ -12,7 +12,8 @@ class User < ActiveRecord::Base
     with_attribute :login
     with_method :last_post, :bad_iv_name!, :bad_iv_name?
     with_association :posts, :account, :images, :group
-    with_class_method :default_name
+    with_class_method :default_name, :user_with_id, :user_with_email,
+                      :users_with_ids, :users_with_ids_in, :user_with_attributes
   end
 
   def last_post
@@ -31,4 +32,23 @@ class User < ActiveRecord::Base
     44
   end
 
+    # accepts a number
+  def self.user_with_id(id)
+    User.find(id)
+  end
+
+  # accepts a string
+  def self.user_with_email(email)
+    User.find_by_email(email)
+  end
+
+  # accepts an array
+  def self.users_with_ids(ids)
+    User.find(ids)
+  end
+
+  # accepts a range
+  def self.users_with_ids_in(range)
+    User.select { |u| range.include?(u.id) }
+  end
 end
