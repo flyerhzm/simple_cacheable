@@ -3,14 +3,14 @@ module Cacheable
 	
 		def rails_assoc_cache_fetch(object, association_name, options={})
 			if options[:belongs_to]
-				cache_key = belong_assocation_cache_key(assocation_name, options[:polymorphic])
+				cache_key = belong_association_cache_key(association_name, options[:polymorphic])
 			else
-				cache_key = have_assocation_cache_key(assocation_name)
+				cache_key = have_association_cache_key(association_name)
 			end
 
 			unless result = read_from_cache(cache_key)
 				association_cache.delete(association_name)
-				result = object.send(assocation_name)
+				result = object.send(association_name)
 				write_to_cache(cache_key, result)
 			end
 			result
@@ -42,6 +42,7 @@ module Cacheable
 
 		def read_from_cache(key)
 			coder = Rails.cache.read(key)
+			return nil if coder.nil?
 			
 			unless coder.is_a?(Array)
 				record_from_coder(coder)

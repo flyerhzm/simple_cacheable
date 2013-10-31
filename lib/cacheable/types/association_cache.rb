@@ -24,7 +24,7 @@ module Cacheable
           define_method("cached_#{association_name}") do
             if instance_variable_get("@#{method_name}").nil?
               instance_variable_set("@#{method_name}", 
-                rails_assoc_cache_fetch(self, association_name)
+                rails_assoc_cache_fetch(self, association_name))
             end
             instance_variable_get("@#{method_name}")
           end
