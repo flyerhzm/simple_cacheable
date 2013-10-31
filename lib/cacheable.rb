@@ -2,12 +2,14 @@ require 'uri'
 require "cacheable/caches"
 require "cacheable/keys"
 require "cacheable/expiry"
+require "cacheable/model_fetch"
 
 module Cacheable
   def self.included(base)
     base.extend(Cacheable::Caches)
     base.send :include, Cacheable::Keys
     base.send :include, Cacheable::Expiry
+    base.send :include, Cacheable::ModelFetch
     base.send :extend,  ClassMethods
 
     base.class_eval do
