@@ -40,7 +40,7 @@ module Cacheable
       define_method(method_name) do
         if instance_variable_get("@#{method_name}").nil?
           instance_variable_set("@#{method_name}",
-            rails_assoc_cache_fetch(self, assocation_name, {belongs_to: true, polymorphic: polymorphic}))
+            rails_assoc_cache_fetch(self, association_name, {belongs_to: true, polymorphic: polymorphic}))
         end
         instance_variable_get("@#{method_name}")
       end

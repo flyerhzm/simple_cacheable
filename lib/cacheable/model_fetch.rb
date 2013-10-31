@@ -30,12 +30,13 @@ module Cacheable
 		end
 
 		def write_to_cache(key, value)
-			unless value.is_a?(Array)
-				coder = coder_from_record(value)
-			else
+			if value.respond_to?(:to_a)
+				value = value.to_a
 				coder = value.map {|obj| coder_from_record(obj) }
+			else
+				coder = coder_from_record(value)
 			end
-			
+
 			Rails.cache.write(key, coder)
 			coder
 		end
