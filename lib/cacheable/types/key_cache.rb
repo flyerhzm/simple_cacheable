@@ -8,7 +8,7 @@ module Cacheable
       end
 
       define_singleton_method("find_cached") do |id|
-        rails_cache_fetch(id)
+        fetch(id)
       end
     end
   end

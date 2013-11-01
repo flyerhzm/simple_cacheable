@@ -2,11 +2,13 @@ module Cacheable
 	
 	module ClassMethods
 			
-		def rails_cache_fetch(id)
-			cache_key = [name.tableize, id.to_s].join("/")
-			unless result = self.new.read_from_cache(cache_key)
-				result = self.find(id)
-				self.new.write_to_cache(cache_key, result)
+		def fetch(id, &block)
+			model_cache_key = [name.tableize, id.to_s].join("/")
+			result = self.new.read_from_cache(model_cache_key)
+
+			if result.nil?
+				result = block_given? ? yield : self.find(id)
+				self.new.write_to_cache(model_cache_key, result)
 			end
 			result
 		end
@@ -14,16 +16,18 @@ module Cacheable
 
 	module ModelFetch
 
-		def rails_assoc_cache_fetch(object, association_name, options={})
+		def fetch_association(object, association_name, options={}, &block)
 			if options[:belongs_to]
 				cache_key = belong_association_cache_key(association_name, options[:polymorphic])
 			else
 				cache_key = have_association_cache_key(association_name)
 			end
 
-			unless result = read_from_cache(cache_key)
-				association_cache.delete(association_name)
-				result = object.send(association_name)
+			association_cache.delete(association_name)
+			result = read_from_cache(cache_key)
+			
+			if result.nil?
+				result = block_given? ? yield : object.send(association_name)
 				write_to_cache(cache_key, result)
 			end
 			result
