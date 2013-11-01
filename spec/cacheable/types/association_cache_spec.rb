@@ -40,6 +40,7 @@ describe Cacheable do
   before :each do
     cache.clear
     user.reload
+    @post1.reload
   end
 
   context "with_association" do
@@ -65,7 +66,6 @@ describe Cacheable do
 
       it "should cache Comment#commentable with polymorphic" do
         Rails.cache.read("posts/#{@post1.id}").should be_nil
-        @post1.location_id.should_not be_nil
         @comment1.cached_commentable.should == @post1
         Rails.cache.read("posts/#{@post1.id}").should == coder.call(@post1)
       end
