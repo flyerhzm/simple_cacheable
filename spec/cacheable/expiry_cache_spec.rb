@@ -5,6 +5,13 @@ describe Cacheable do
   let(:user)  { User.create(:login => 'flyerhzm') }
   let(:descendant) { Descendant.create(:login => "scotterc")}
 
+  let(:coder) { lambda do |object| 
+                  coder = {:class => object.class}
+                  object.encode_with(coder)
+                  coder 
+                end
+              }
+
   before :all do
     @post1 = user.posts.create(:title => 'post1')
     user2 = User.create(:login => 'PelegR')
@@ -146,7 +153,7 @@ describe Cacheable do
         it "expires correctly from inherited attributes" do
           Rails.cache.read("descendants/#{descendant.id}/association/posts").should be_nil
           descendant.cached_posts.should == [@post3]
-          Rails.cache.read("descendants/#{descendant.id}/association/posts").should == [@post3]
+          Rails.cache.read("descendants/#{descendant.id}/association/posts").should == [coder.call(@post3)]
           descendant.expire_model_cache
           Rails.cache.read("descendants/#{descendant.id}/association/posts").should be_nil
         end
@@ -163,5 +170,4 @@ describe Cacheable do
       end
     end
   end
-
 end

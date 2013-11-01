@@ -1,6 +1,19 @@
 module Cacheable
-	module ModelFetch
 	
+	module ClassMethods
+			
+		def rails_cache_fetch(id)
+			cache_key = [name.tableize, id.to_s].join("/")
+			unless result = self.new.read_from_cache(cache_key)
+				result = self.find(id)
+				self.new.write_to_cache(cache_key, result)
+			end
+			result
+		end
+	end
+
+	module ModelFetch
+
 		def rails_assoc_cache_fetch(object, association_name, options={})
 			if options[:belongs_to]
 				cache_key = belong_association_cache_key(association_name, options[:polymorphic])

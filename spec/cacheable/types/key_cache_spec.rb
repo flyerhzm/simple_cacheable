@@ -4,6 +4,13 @@ describe Cacheable do
   let(:cache) { Rails.cache }
   let(:user)  { User.create(:login => 'flyerhzm') }
 
+  let(:coder) { lambda do |object| 
+                  coder = {:class => object.class}
+                  object.encode_with(coder)
+                  coder 
+                end
+              }
+
   before :each do
     cache.clear
     user.reload
@@ -15,7 +22,7 @@ describe Cacheable do
 
   it "should cache by User#id" do
     User.find_cached(user.id).should == user
-    Rails.cache.read("users/#{user.id}").should == user
+    Rails.cache.read("users/#{user.id}").should == coder.call(user)
   end
 
   it "should get cached by User#id multiple times" do

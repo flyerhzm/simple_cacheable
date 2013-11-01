@@ -4,6 +4,13 @@ describe Cacheable do
   let(:cache) { Rails.cache }
   let(:user)  { User.create(:login => 'flyerhzm') }
 
+  let(:coder) { lambda do |object| 
+                  coder = {:class => object.class}
+                  object.encode_with(coder)
+                  coder 
+                end
+              }
+
   before :all do
     @group1 = Group.create(name: "Ruby On Rails")
     @account = user.create_account(group: @group1)
@@ -58,7 +65,7 @@ describe Cacheable do
       @group1.save
       Rails.cache.read("users/#{user.id}/association/group").should be_nil
       user.cached_group.should == @group1
-      Rails.cache.read("users/#{user.id}/association/group").should == @group1
+      Rails.cache.read("users/#{user.id}/association/group").should == coder.call(@group1)
     end
   end
 end
