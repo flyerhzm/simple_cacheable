@@ -8,7 +8,10 @@ module Cacheable
       end
 
       define_singleton_method("find_cached") do |id|
-        fetch(id)
+        model_cache_key = [name.tableize, id.to_s].join("/")
+        singleton_fetch(model_cache_key) do
+          self.find(id)
+        end
       end
     end
   end

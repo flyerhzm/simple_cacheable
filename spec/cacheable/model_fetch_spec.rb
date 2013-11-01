@@ -14,14 +14,20 @@ describe Cacheable do
  	describe "singleton fetch" do
 
  		it "should find an object by id" do
- 			User.fetch(1).should == user
+ 			key = [User.name.tableize, 1.to_s].join("/")
+ 			User.singleton_fetch(key) do 
+ 				User.find(1)
+ 			end.should == user
  		end
  	end
 
  	describe "association fetch" do
 
  		it "should find associations by name" do
- 			user.fetch_association(user, :posts).should == [@post1, @post2]
+ 			key = user.have_association_cache_key(:posts)
+ 			user.fetch(key) do 
+ 				user.send(:posts)
+ 			end.should == [@post1, @post2]
  		end
  	end
 end

@@ -2,33 +2,25 @@ module Cacheable
 	
 	module ClassMethods
 			
-		def fetch(id, &block)
-			model_cache_key = [name.tableize, id.to_s].join("/")
-			result = self.new.read_from_cache(model_cache_key)
-
-			if result.nil?
-				result = block_given? ? yield : self.find(id)
-				self.new.write_to_cache(model_cache_key, result)
+			def singleton_fetch(key, &block)
+				result = self.new.fetch(key) do
+					yield
+				end
 			end
-			result
-		end
+
 	end
 
 	module ModelFetch
 
-		def fetch_association(object, association_name, options={}, &block)
-			if options[:belongs_to]
-				cache_key = belong_association_cache_key(association_name, options[:polymorphic])
-			else
-				cache_key = have_association_cache_key(association_name)
-			end
-
-			association_cache.delete(association_name)
-			result = read_from_cache(cache_key)
+		def fetch(key, &block)
 			
+			result = read_from_cache(key)
+
 			if result.nil?
-				result = block_given? ? yield : object.send(association_name)
-				write_to_cache(cache_key, result)
+				if block_given?
+					result = yield
+					write_to_cache(key, result)
+				end
 			end
 			result
 		end
