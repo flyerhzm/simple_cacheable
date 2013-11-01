@@ -1,15 +1,4 @@
 module Cacheable
-	
-	module ClassMethods
-			
-			def singleton_fetch(key, &block)
-				result = self.new.fetch(key) do
-					yield
-				end
-			end
-
-	end
-
 	module ModelFetch
 
 		def fetch(key, &block)

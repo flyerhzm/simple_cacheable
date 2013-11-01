@@ -15,7 +15,7 @@ describe Cacheable do
 
  		it "should find an object by id" do
  			key = [User.name.tableize, 1.to_s].join("/")
- 			User.singleton_fetch(key) do 
+ 			User.new.fetch(key) do 
  				User.find(1)
  			end.should == user
  		end
