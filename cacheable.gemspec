@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Richard Huang", "Scott Carleton"]
   s.email       = ["flyerhzm@gmail.com", "scott@artsicle.com"]
-  s.homepage    = "https://github.com/flyerhzm/simple-cacheable"
+  s.homepage    = "https://github.com/flyerhzm/simple_cacheable"
   s.summary     = %q{a simple cache implementation based on activerecord}
   s.description = %q{a simple cache implementation based on activerecord}
 
