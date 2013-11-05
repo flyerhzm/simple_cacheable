@@ -41,6 +41,13 @@ describe Cacheable do
       Rails.cache.read("posts/attribute/user_id/#{user.id}").should == {:class => @post1.class, 'attributes' => @post1.attributes}
     end
 
+    it "should return correct nil values" do
+      User.find_cached_by_login("ducksauce").should be_nil
+      User.find_cached_by_login("ducksauce").should be_nil
+      User.find_cached_all_by_login("ducksauce").should == []
+      User.find_cached_all_by_login("ducksauce").should == []
+    end
+
     context "find_all" do
       it "should not cache Post.find_all_by_user_id" do
         Rails.cache.read("posts/attribute/user_id/all/#{user.id}").should be_nil

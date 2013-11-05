@@ -5,7 +5,7 @@ module Cacheable
 			unless result = read_from_cache(key)
 				if block_given?
 					result = yield
-					write_to_cache(key, result)
+					write_to_cache(key, result) unless result.nil?
 				end
 			end
 			result
