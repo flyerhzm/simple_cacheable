@@ -2,7 +2,6 @@ module Cacheable
 	module ModelFetch
 
 		def self.fetch(key, &block)
-
 			unless result = read_from_cache(key)
 				if block_given?
 					result = yield
