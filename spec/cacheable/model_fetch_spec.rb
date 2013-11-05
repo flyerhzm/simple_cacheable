@@ -14,7 +14,7 @@ describe Cacheable do
  	describe "singleton fetch" do
 
  		it "should find an object by id" do
- 			key = [User.name.tableize, 1.to_s].join("/")
+ 			key = User.instance_cache_key(1)
  			Cacheable::ModelFetch.fetch(key) do 
  				User.find(1)
  			end.should == user
