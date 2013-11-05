@@ -1,11 +1,9 @@
 module Cacheable
 	module ModelFetch
 
-		def fetch(key, &block)
-			
-			result = read_from_cache(key)
+		def self.fetch(key, &block)
 
-			if result.nil?
+			unless result = read_from_cache(key)
 				if block_given?
 					result = yield
 					write_to_cache(key, result)
@@ -14,7 +12,32 @@ module Cacheable
 			result
 		end
 
-		def coder_from_record(record)
+		private
+
+		def self.write_to_cache(key, value)
+			coder = if value.respond_to?(:to_a)
+				value = value.to_a
+				value.map {|obj| coder_from_record(obj) }
+			else
+				coder_from_record(value)
+			end
+
+			Rails.cache.write(key, coder)
+			coder
+		end
+
+		def self.read_from_cache(key)
+			coder = Rails.cache.read(key)
+			return nil if coder.nil?
+			
+			if coder.is_a?(Array)
+				coder.map { |obj| record_from_coder(obj) }
+			else
+				record_from_coder(coder)
+			end
+		end
+
+		def self.coder_from_record(record)
 			unless record.nil?
 				coder = { :class => record.class }
 				record.encode_with(coder)
@@ -22,32 +45,9 @@ module Cacheable
 			end
 		end
 
-		def record_from_coder(coder)
+		def self.record_from_coder(coder)
 			record = coder[:class].allocate
 			record.init_with(coder)
-		end
-
-		def write_to_cache(key, value)
-			if value.respond_to?(:to_a)
-				value = value.to_a
-				coder = value.map {|obj| coder_from_record(obj) }
-			else
-				coder = coder_from_record(value)
-			end
-
-			Rails.cache.write(key, coder)
-			coder
-		end
-
-		def read_from_cache(key)
-			coder = Rails.cache.read(key)
-			return nil if coder.nil?
-			
-			unless coder.is_a?(Array)
-				record_from_coder(coder)
-			else
-				coder.map { |obj| record_from_coder(obj) }
-			end
 		end
 	end
 end

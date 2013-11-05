@@ -15,7 +15,7 @@ describe Cacheable do
 
  		it "should find an object by id" do
  			key = [User.name.tableize, 1.to_s].join("/")
- 			User.new.fetch(key) do 
+ 			Cacheable::ModelFetch.fetch(key) do 
  				User.find(1)
  			end.should == user
  		end
@@ -25,7 +25,7 @@ describe Cacheable do
 
  		it "should find associations by name" do
  			key = user.have_association_cache_key(:posts)
- 			user.fetch(key) do 
+ 			Cacheable::ModelFetch.fetch(key) do 
  				user.send(:posts)
  			end.should == [@post1, @post2]
  		end
