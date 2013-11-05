@@ -5,9 +5,7 @@ describe Cacheable do
   let(:user)  { User.create(:login => 'flyerhzm') }
 
   let(:coder) { lambda do |object| 
-                  coder = {:class => object.class}
-                  object.encode_with(coder)
-                  coder 
+                  Cacheable::ModelFetch.send(:coder_from_record, object)
                 end
               }
 

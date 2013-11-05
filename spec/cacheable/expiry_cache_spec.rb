@@ -6,9 +6,7 @@ describe Cacheable do
   let(:descendant) { Descendant.create(:login => "scotterc")}
 
   let(:coder) { lambda do |object| 
-                  coder = {:class => object.class}
-                  object.encode_with(coder)
-                  coder 
+                  Cacheable::ModelFetch.send(:coder_from_record, object)
                 end
               }
 

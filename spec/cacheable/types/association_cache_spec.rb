@@ -6,17 +6,13 @@ describe Cacheable do
   let(:user2)  { User.create(:login => 'ScotterC') }
 
   let(:coder) { lambda do |object| 
-                  coder = {:class => object.class}
-                  object.encode_with(coder)
-                  coder 
+                  Cacheable::ModelFetch.send(:coder_from_record, object)
                 end
               }
   
   let(:multi_coder) { lambda do |objects| 
       objects.map do |object|
-        coder = {:class => object.class}
-        object.encode_with(coder)
-        coder 
+        Cacheable::ModelFetch.send(:coder_from_record, object)
       end
     end
   }
