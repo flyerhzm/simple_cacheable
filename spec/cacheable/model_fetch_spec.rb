@@ -32,9 +32,13 @@ describe Cacheable do
  	end
 
  	describe "unit tests" do
+ 		before :each do
+ 			Rails.cache.clear
+ 		end
 
  		describe "#write_to_cache" do
  			it "should write an encoded object to the cache" do
+ 				Rails.cache.read(user.model_cache_key).should be_nil
  				Cacheable::ModelFetch.send(:write_to_cache, user.model_cache_key, user)
  				Rails.cache.read(user.model_cache_key).should == { :class => user.class, 'attributes' => user.attributes }
  			end
@@ -42,6 +46,7 @@ describe Cacheable do
 
  		describe "#read_from_cache" do
  			it "should decode an encoded object read from the cache" do
+ 				Rails.cache.read(user.model_cache_key).should be_nil
  				Rails.cache.write(user.model_cache_key, {:class => user.class, 'attributes' => user.attributes} )
  				Cacheable::ModelFetch.send(:read_from_cache, user.model_cache_key).should == user
  			end
