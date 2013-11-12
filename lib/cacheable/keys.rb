@@ -32,7 +32,7 @@ module Cacheable
     module InstanceKeys
 
       def model_cache_keys
-        ["#{self.class.name.tableize}/#{self.id.to_i}", "#{self.class.name.tableize}/#{self.to_param}"]
+        ["#{self.class.base_class.name.tableize}/#{self.id.to_i}", "#{self.class.base_class.name.tableize}/#{self.to_param}"]
       end
 
       def model_cache_key
