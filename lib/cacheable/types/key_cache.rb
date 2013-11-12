@@ -8,7 +8,8 @@ module Cacheable
       end
 
       define_singleton_method("find_cached") do |id|
-        Rails.cache.fetch "#{name.tableize}/" + id.to_i.to_s do
+        cache_key = self.instance_cache_key(id)
+        Cacheable::ModelFetch.fetch(cache_key) do
           self.find(id)
         end
       end

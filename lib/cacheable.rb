@@ -2,8 +2,11 @@ require 'uri'
 require "cacheable/caches"
 require "cacheable/keys"
 require "cacheable/expiry"
+require "cacheable/model_fetch"
 
 module Cacheable
+  include ModelFetch
+
   def self.included(base)
     base.extend(Cacheable::Caches)
     base.send :include, Cacheable::Keys
@@ -27,6 +30,8 @@ module Cacheable
     def model_cache(&block)
       instance_exec &block
     end
+
+    
 
   end
 

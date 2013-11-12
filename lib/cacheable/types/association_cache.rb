@@ -23,17 +23,12 @@ module Cacheable
           method_name = "cached_#{association_name}"
           define_method("cached_#{association_name}") do
             if instance_variable_get("@#{method_name}").nil?
-              instance_variable_set("@#{method_name}",
-                (Rails.cache.fetch have_association_cache_key(association_name) do
-                  association_cache.delete(association_name)
-                  associated = send(association_name)
-                  if associated.respond_to?(:to_a) && !associated.nil?
-                    associated.to_a
-                  else
-                    associated
-                  end
-                end)
-              )
+              association_cache.delete(association_name)
+              cache_key = have_association_cache_key(association_name)
+              result = Cacheable::ModelFetch.fetch(cache_key) do
+                send(association_name)
+              end
+              instance_variable_set("@#{method_name}", result)
             end
             instance_variable_get("@#{method_name}")
           end
@@ -48,12 +43,12 @@ module Cacheable
       method_name = "cached_#{association_name}"
       define_method(method_name) do
         if instance_variable_get("@#{method_name}").nil?
-          instance_variable_set("@#{method_name}",
-            (Rails.cache.fetch belong_association_cache_key(association_name, polymorphic) do
-              association_cache.delete(association_name)
-              send(association_name)
-            end)
-          )
+          cache_key = belong_association_cache_key(association_name, polymorphic)
+          association_cache.delete(association_name)
+          result = Cacheable::ModelFetch.fetch(cache_key) do
+            send(association_name)
+          end
+          instance_variable_set("@#{method_name}", result)
         end
         instance_variable_get("@#{method_name}")
       end

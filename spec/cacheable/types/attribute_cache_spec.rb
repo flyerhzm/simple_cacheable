@@ -23,7 +23,7 @@ describe Cacheable do
 
     it "should cache by User.find_by_login" do
       User.find_cached_by_login("flyerhzm").should == user
-      Rails.cache.read("users/attribute/login/flyerhzm").should == user
+      Rails.cache.read("users/attribute/login/flyerhzm").should =={:class => user.class, 'attributes' => user.attributes}
     end
 
     it "should get cached by User.find_by_login multiple times" do
@@ -38,7 +38,14 @@ describe Cacheable do
 
     it "should handle fixed numbers" do
       Post.find_cached_by_user_id(user.id).should == @post1
-      Rails.cache.read("posts/attribute/user_id/#{user.id}").should == @post1
+      Rails.cache.read("posts/attribute/user_id/#{user.id}").should == {:class => @post1.class, 'attributes' => @post1.attributes}
+    end
+
+    it "should return correct nil values" do
+      User.find_cached_by_login("ducksauce").should be_nil
+      User.find_cached_by_login("ducksauce").should be_nil
+      User.find_cached_all_by_login("ducksauce").should == []
+      User.find_cached_all_by_login("ducksauce").should == []
     end
 
     context "find_all" do
@@ -48,7 +55,8 @@ describe Cacheable do
 
       it "should cache by Post.find_cached_all_by_user_id" do
         Post.find_cached_all_by_user_id(user.id).should == [@post1, @post2]
-        Rails.cache.read("posts/attribute/user_id/all/#{user.id}").should == [@post1, @post2]
+        Rails.cache.read("posts/attribute/user_id/all/#{user.id}").should == [{:class => @post1.class, 'attributes' => @post1.attributes},
+                                                                              {:class => @post2.class, 'attributes' => @post2.attributes}]
       end
 
       it "should get cached by Post.find_cached_all_by_user_id multiple times" do
@@ -66,7 +74,7 @@ describe Cacheable do
 
     it "should cache by Descendant.find_by_login" do
       Descendant.find_cached_by_login("scotterc").should == descendant
-      Rails.cache.read("descendants/attribute/login/scotterc").should == descendant
+      Rails.cache.read("descendants/attribute/login/scotterc").should == {:class => descendant.class, 'attributes' => descendant.attributes }
     end
 
     it "should get cached by Descendant.find_by_login multiple times" do

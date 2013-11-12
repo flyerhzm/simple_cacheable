@@ -5,6 +5,11 @@ describe Cacheable do
   let(:user)  { User.create(:login => 'flyerhzm') }
   let(:descendant) { Descendant.create(:login => "scotterc")}
 
+  let(:coder) { lambda do |object| 
+                  Cacheable::ModelFetch.send(:coder_from_record, object)
+                end
+              }
+
   before :all do
     @post1 = user.posts.create(:title => 'post1')
     user2 = User.create(:login => 'PelegR')
@@ -27,7 +32,7 @@ describe Cacheable do
 
     it "should delete with_attribute cache" do
       user = User.find_cached_by_login("flyerhzm")
-      Rails.cache.read("users/attribute/login/flyerhzm").should == user
+      Rails.cache.read("users/attribute/login/flyerhzm").should == {:class => user.class, 'attributes' => user.attributes}
       user.expire_model_cache
       Rails.cache.read("users/attribute/login/flyerhzm").should be_nil
     end
@@ -136,7 +141,7 @@ describe Cacheable do
         it "expires correctly from inherited attributes" do
           Rails.cache.read("descendants/attribute/login/scotterc").should be_nil
           Descendant.find_cached_by_login("scotterc").should == descendant
-          Rails.cache.read("descendants/attribute/login/scotterc").should == descendant
+          Rails.cache.read("descendants/attribute/login/scotterc").should == {:class => descendant.class, 'attributes' => descendant.attributes}
           descendant.expire_model_cache
           Rails.cache.read("descendants/attribute/login/scotterc").should be_nil
         end
@@ -146,7 +151,7 @@ describe Cacheable do
         it "expires correctly from inherited attributes" do
           Rails.cache.read("descendants/#{descendant.id}/association/posts").should be_nil
           descendant.cached_posts.should == [@post3]
-          Rails.cache.read("descendants/#{descendant.id}/association/posts").should == [@post3]
+          Rails.cache.read("descendants/#{descendant.id}/association/posts").should == [coder.call(@post3)]
           descendant.expire_model_cache
           Rails.cache.read("descendants/#{descendant.id}/association/posts").should be_nil
         end
@@ -163,5 +168,4 @@ describe Cacheable do
       end
     end
   end
-
 end
