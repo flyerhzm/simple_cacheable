@@ -13,8 +13,10 @@ class Post < ActiveRecord::Base
     with_key
     with_attribute :user_id
     with_association :user, :comments, :images, :tags
-    with_class_method :default_post, :retrieve_with_user_id, :retrieve_with_both
+    with_class_method :retrieve_with_user_id, :retrieve_with_both, :default_post
   end
+
+  before_validation :create_slug
 
   def self.default_post
     Post.first
@@ -26,6 +28,20 @@ class Post < ActiveRecord::Base
 
   def self.retrieve_with_both(user_id, post_id)
     Post.find(post_id) == Post.find_by_user_id(user_id)
+  end
+
+  def create_slug
+    self.slug = title
+  end
+
+  def to_param
+    slug
+  end
+
+  # Hack to mimic friendly id
+  def self.find(id)
+    return super unless id.to_i == 0
+    where(:slug => id).first or super
   end
 
 end
