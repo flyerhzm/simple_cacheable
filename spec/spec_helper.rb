@@ -55,6 +55,7 @@ RSpec.configure do |config|
         t.integer :user_id
         t.string :title
         t.integer :location_id
+        t.string :slug
       end
 
       create_table :comments do |t|

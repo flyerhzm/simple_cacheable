@@ -2,16 +2,16 @@ require 'spec_helper'
 
 describe Cacheable do
   let(:cache) { Rails.cache }
-  let(:user)  { User.create(:login => 'flyerhzm', :email => 'flyerhzm@mail.com') }
 
   before :all do
-    @post1 = user.posts.create(:title => 'post1')
-    @post2 = user.posts.create(:title => 'post2')
+    @user  = User.create(:login => 'flyerhzm', :email => 'flyerhzm@mail.com')
+    @post1 = @user.posts.create(:title => 'post1')
+    @post2 = @user.posts.create(:title => 'post2')
   end
 
   before :each do
     cache.clear
-    user.reload
+    @user.reload
   end
 
   it "should not cache Post.default_post" do
