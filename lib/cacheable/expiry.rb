@@ -15,7 +15,9 @@ module Cacheable
     end
 
     def expire_key_cache
-      Rails.cache.delete model_cache_key
+      model_cache_keys.each do |key|
+        Rails.cache.delete key
+      end
     end
 
     def expire_attribute_cache

@@ -23,13 +23,17 @@ module Cacheable
         return key
       end
 
-      def instance_cache_key(id)
-        "#{self.base_class.name.tableize}/#{id.to_i}"
+      def instance_cache_key(param)
+        "#{self.base_class.name.tableize}/#{param}"
       end
 
     end
 
     module InstanceKeys
+
+      def model_cache_keys
+        ["#{self.class.base_class.name.tableize}/#{self.id.to_i}", "#{self.class.base_class.name.tableize}/#{self.to_param}"]
+      end
 
       def model_cache_key
         "#{self.class.base_class.name.tableize}/#{self.id.to_i}"
