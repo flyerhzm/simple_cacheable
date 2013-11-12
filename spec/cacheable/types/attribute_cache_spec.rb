@@ -2,18 +2,18 @@ require 'spec_helper'
 
 describe Cacheable do
   let(:cache) { Rails.cache }
-  let(:user)  { User.create(:login => 'flyerhzm') }
-  let(:descendant) { Descendant.create(:login => "scotterc")}
 
   before :all do
-    @post1 = user.posts.create(:title => 'post1')
-    @post2 = user.posts.create(:title => 'post2')
-    @post3 = descendant.posts.create(:title => 'post3')
+    @user       = User.create(:login => 'flyerhzm')
+    @descendant = Descendant.create(:login => "scotterc")
+    @post1      = @user.posts.create(:title => 'post1')
+    @post2      = @user.posts.create(:title => 'post2')
+    @post3      = @descendant.posts.create(:title => 'post3')
   end
 
   before :each do
     cache.clear
-    user.reload
+    @user.reload
   end
 
   context "with_attribute" do
@@ -22,13 +22,13 @@ describe Cacheable do
     end
 
     it "should cache by User.find_by_login" do
-      User.find_cached_by_login("flyerhzm").should == user
-      Rails.cache.read("users/attribute/login/flyerhzm").should =={:class => user.class, 'attributes' => user.attributes}
+      User.find_cached_by_login("flyerhzm").should == @user
+      Rails.cache.read("users/attribute/login/flyerhzm").should =={:class => @user.class, 'attributes' => @user.attributes}
     end
 
     it "should get cached by User.find_by_login multiple times" do
       User.find_cached_by_login("flyerhzm")
-      User.find_cached_by_login("flyerhzm").should == user
+      User.find_cached_by_login("flyerhzm").should == @user
     end
 
     it "should escape whitespace" do
@@ -37,8 +37,8 @@ describe Cacheable do
     end
 
     it "should handle fixed numbers" do
-      Post.find_cached_by_user_id(user.id).should == @post1
-      Rails.cache.read("posts/attribute/user_id/#{user.id}").should == {:class => @post1.class, 'attributes' => @post1.attributes}
+      Post.find_cached_by_user_id(@user.id).should == @post1
+      Rails.cache.read("posts/attribute/user_id/#{@user.id}").should == {:class => @post1.class, 'attributes' => @post1.attributes}
     end
 
     it "should return correct nil values" do
@@ -50,18 +50,18 @@ describe Cacheable do
 
     context "find_all" do
       it "should not cache Post.find_all_by_user_id" do
-        Rails.cache.read("posts/attribute/user_id/all/#{user.id}").should be_nil
+        Rails.cache.read("posts/attribute/user_id/all/#{@user.id}").should be_nil
       end
 
       it "should cache by Post.find_cached_all_by_user_id" do
-        Post.find_cached_all_by_user_id(user.id).should == [@post1, @post2]
-        Rails.cache.read("posts/attribute/user_id/all/#{user.id}").should == [{:class => @post1.class, 'attributes' => @post1.attributes},
+        Post.find_cached_all_by_user_id(@user.id).should == [@post1, @post2]
+        Rails.cache.read("posts/attribute/user_id/all/#{@user.id}").should == [{:class => @post1.class, 'attributes' => @post1.attributes},
                                                                               {:class => @post2.class, 'attributes' => @post2.attributes}]
       end
 
       it "should get cached by Post.find_cached_all_by_user_id multiple times" do
-        Post.find_cached_all_by_user_id(user.id)
-        Post.find_cached_all_by_user_id(user.id).should == [@post1, @post2]
+        Post.find_cached_all_by_user_id(@user.id)
+        Post.find_cached_all_by_user_id(@user.id).should == [@post1, @post2]
       end
 
     end
@@ -73,13 +73,13 @@ describe Cacheable do
     end
 
     it "should cache by Descendant.find_by_login" do
-      Descendant.find_cached_by_login("scotterc").should == descendant
-      Rails.cache.read("descendants/attribute/login/scotterc").should == {:class => descendant.class, 'attributes' => descendant.attributes }
+      Descendant.find_cached_by_login("scotterc").should == @descendant
+      Rails.cache.read("descendants/attribute/login/scotterc").should == {:class => @descendant.class, 'attributes' => @descendant.attributes }
     end
 
     it "should get cached by Descendant.find_by_login multiple times" do
       Descendant.find_cached_by_login("scotterc")
-      Descendant.find_cached_by_login("scotterc").should == descendant
+      Descendant.find_cached_by_login("scotterc").should == @descendant
     end
 
     it "should escape whitespace" do
@@ -88,9 +88,9 @@ describe Cacheable do
     end
 
     it "maintains cached methods" do
-      Rails.cache.read("descendants/#{descendant.id}/method/name").should be_nil
-      descendant.cached_name.should == descendant.name
-      Rails.cache.read("descendants/#{descendant.id}/method/name").should == descendant.name
+      Rails.cache.read("descendants/#{@descendant.id}/method/name").should be_nil
+      @descendant.cached_name.should == @descendant.name
+      Rails.cache.read("descendants/#{@descendant.id}/method/name").should == @descendant.name
     end
   end
 
