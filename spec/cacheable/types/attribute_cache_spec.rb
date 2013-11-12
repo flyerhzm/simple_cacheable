@@ -69,12 +69,12 @@ describe Cacheable do
 
   context "descendant" do
     it "should not cache Descendant.find_by_login" do
-      Rails.cache.read("descendants/attribute/login/scotterc").should be_nil
+      Rails.cache.read("users/attribute/login/scotterc").should be_nil
     end
 
     it "should cache by Descendant.find_by_login" do
       Descendant.find_cached_by_login("scotterc").should == descendant
-      Rails.cache.read("descendants/attribute/login/scotterc").should == {:class => descendant.class, 'attributes' => descendant.attributes }
+      Rails.cache.read("users/attribute/login/scotterc").should == {:class => descendant.class, 'attributes' => descendant.attributes }
     end
 
     it "should get cached by Descendant.find_by_login multiple times" do
@@ -88,9 +88,9 @@ describe Cacheable do
     end
 
     it "maintains cached methods" do
-      Rails.cache.read("descendants/#{descendant.id}/method/name").should be_nil
+      Rails.cache.read("users/#{descendant.id}/method/name").should be_nil
       descendant.cached_name.should == descendant.name
-      Rails.cache.read("descendants/#{descendant.id}/method/name").should == descendant.name
+      Rails.cache.read("users/#{descendant.id}/method/name").should == descendant.name
     end
   end
 

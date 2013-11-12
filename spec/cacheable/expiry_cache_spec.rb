@@ -5,7 +5,7 @@ describe Cacheable do
   let(:user)  { User.create(:login => 'flyerhzm') }
   let(:descendant) { Descendant.create(:login => "scotterc")}
 
-  let(:coder) { lambda do |object| 
+  let(:coder) { lambda do |object|
                   Cacheable::ModelFetch.send(:coder_from_record, object)
                 end
               }
@@ -129,41 +129,41 @@ describe Cacheable do
 
       context "expiring method cache" do
         it "expires correctly from inherited attributes" do
-          Rails.cache.read("descendants/#{descendant.id}/method/last_post").should be_nil
+          Rails.cache.read("users/#{descendant.id}/method/last_post").should be_nil
           descendant.cached_last_post.should == descendant.last_post
-          Rails.cache.read("descendants/#{descendant.id}/method/last_post").should == descendant.last_post
+          Rails.cache.read("users/#{descendant.id}/method/last_post").should == descendant.last_post
           descendant.expire_model_cache
-          Rails.cache.read("descendants/#{descendant.id}/method/last_post").should be_nil
+          Rails.cache.read("users/#{descendant.id}/method/last_post").should be_nil
         end
       end
 
       context "expiring attribute cache" do
         it "expires correctly from inherited attributes" do
-          Rails.cache.read("descendants/attribute/login/scotterc").should be_nil
+          Rails.cache.read("users/attribute/login/scotterc").should be_nil
           Descendant.find_cached_by_login("scotterc").should == descendant
-          Rails.cache.read("descendants/attribute/login/scotterc").should == {:class => descendant.class, 'attributes' => descendant.attributes}
+          Rails.cache.read("users/attribute/login/scotterc").should == {:class => descendant.class, 'attributes' => descendant.attributes}
           descendant.expire_model_cache
-          Rails.cache.read("descendants/attribute/login/scotterc").should be_nil
+          Rails.cache.read("users/attribute/login/scotterc").should be_nil
         end
       end
 
       context "expiring association cache" do
         it "expires correctly from inherited attributes" do
-          Rails.cache.read("descendants/#{descendant.id}/association/posts").should be_nil
+          Rails.cache.read("users/#{descendant.id}/association/posts").should be_nil
           descendant.cached_posts.should == [@post3]
-          Rails.cache.read("descendants/#{descendant.id}/association/posts").should == [coder.call(@post3)]
+          Rails.cache.read("users/#{descendant.id}/association/posts").should == [coder.call(@post3)]
           descendant.expire_model_cache
-          Rails.cache.read("descendants/#{descendant.id}/association/posts").should be_nil
+          Rails.cache.read("users/#{descendant.id}/association/posts").should be_nil
         end
       end
 
       context "expiring class_method cache" do
         it "expires correctly from inherited attributes" do
-          Rails.cache.read("descendants/class_method/default_name").should be_nil
+          Rails.cache.read("users/class_method/default_name").should be_nil
           Descendant.cached_default_name
-          Rails.cache.read("descendants/class_method/default_name").should == "ScotterC"
+          Rails.cache.read("users/class_method/default_name").should == "ScotterC"
           descendant.expire_model_cache
-          Rails.cache.read("descendants/class_method/default_name").should be_nil
+          Rails.cache.read("users/class_method/default_name").should be_nil
         end
       end
     end
