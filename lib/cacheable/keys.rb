@@ -24,7 +24,7 @@ module Cacheable
       end
 
       def instance_cache_key(id)
-        "#{self.name.tableize}/#{id.to_i}"
+        "#{self.name.tableize}/#{id}"
       end
 
     end
