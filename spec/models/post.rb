@@ -34,6 +34,10 @@ class Post < ActiveRecord::Base
     self.slug = title
   end
 
+  def to_param
+    slug
+  end
+
   # Hack to mimic friendly id
   def self.find(id)
     return super unless id.to_i == 0

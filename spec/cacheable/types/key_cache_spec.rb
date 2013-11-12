@@ -52,6 +52,22 @@ describe Cacheable do
       Post.find_cached(@post1.slug)
       Rails.cache.read("posts/#{@post1.slug}").should == coder.call(@post1)
     end
+
+    describe "it should expire both" do
+      it "should expire it with id" do
+        Post.find_cached(@post1.id)
+        Rails.cache.read("posts/#{@post1.id}").should == coder.call(@post1)
+        @post1.save
+        Rails.cache.read("posts/#{@post1.id}").should == nil
+      end
+
+      it "should expire it with slug" do
+        Post.find_cached(@post1.slug)
+        Rails.cache.read("posts/#{@post1.slug}").should == coder.call(@post1)
+        @post1.save
+        Rails.cache.read("posts/#{@post1.slug}").should == nil
+      end
+    end
   end
 
 end
