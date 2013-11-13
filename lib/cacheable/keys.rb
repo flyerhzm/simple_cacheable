@@ -43,12 +43,15 @@ module Cacheable
         "#{model_cache_key}/method/#{meth}"
       end
 
+      # Returns nil if association cannot be qualified
       def belong_association_cache_key(name, polymorphic=nil)
         name = name.to_s if name.is_a?(Symbol)
-        if polymorphic && self.send("#{name}_type").present?
-          "#{self.send("#{name}_type").constantize.base_class.name.tableize}/#{self.send("#{name}_id")}"
+
+        if polymorphic && self.respond_to?(:"#{name}_type")
+          return nil unless self.send(:"#{name}_type").present?
+          "#{self.send(:"#{name}_type").constantize.base_class.name.tableize}/#{self.send(:"#{name}_id")}"
         else
-          "#{name.capitalize.constantize.base_class.name.tableize}/#{self.send(name + "_id")}"
+          "#{name.capitalize.constantize.base_class.name.tableize}/#{self.send(:"#{name}_id")}"
         end
       end
 

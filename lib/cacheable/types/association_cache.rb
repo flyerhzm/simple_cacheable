@@ -20,8 +20,8 @@ module Cacheable
             build_cache_has_many(association, association_name)
           end
 
-          method_name = "cached_#{association_name}"
-          define_method("cached_#{association_name}") do
+          method_name = :"cached_#{association_name}"
+          define_method(method_name) do
             if instance_variable_get("@#{method_name}").nil?
               association_cache.delete(association_name)
               cache_key = have_association_cache_key(association_name)
@@ -32,24 +32,35 @@ module Cacheable
             end
             instance_variable_get("@#{method_name}")
           end
+
         end
+
       end
     end
 
+    # No expiring callback
     def build_cache_belongs_to(association, association_name)
       polymorphic = association.options[:polymorphic]
       polymorphic ||= false
-      method_name = "cached_#{association_name}"
-      define_method(method_name) do
-        if instance_variable_get("@#{method_name}").nil?
+
+      method_name         = association_name
+      cached_method_name = :"cached_#{association_name}"
+
+      define_method(cached_method_name) do
+        if instance_variable_get("@#{cached_method_name}").nil?
           cache_key = belong_association_cache_key(association_name, polymorphic)
-          association_cache.delete(association_name)
-          result = Cacheable::ModelFetch.fetch(cache_key) do
+          result = if cache_key
+            association_cache.delete(association_name)
+            Cacheable::ModelFetch.fetch(cache_key) do
+              send(association_name)
+            end
+          else
+            # Should be nil, but preserve functionality
             send(association_name)
           end
-          instance_variable_set("@#{method_name}", result)
+          instance_variable_set("@#{cached_method_name}", result)
         end
-        instance_variable_get("@#{method_name}")
+        instance_variable_get("@#{cached_method_name}")
       end
     end
 
@@ -66,19 +77,23 @@ module Cacheable
       }
       if reverse_association
         association.klass.class_eval do
-          after_commit "expire_#{association_name}_cache".to_sym
+          after_commit :"expire_#{association_name}_cache"
 
-          define_method("expire_#{association_name}_cache") do
+          define_method(:"expire_#{association_name}_cache") do
 
-            if respond_to? "expire_#{reverse_association.name}_cache".to_sym
-              unless send("cached_#{reverse_association.name}").nil?
-                send("cached_#{reverse_association.name}").expire_association_cache(association_name)
+            method_name = reverse_association.name
+            cached_method_name = :"cached_#{reverse_association.name}"
+
+            if respond_to? cached_method_name
+              unless send(cached_method_name).nil?
+                send(cached_method_name).expire_association_cache(association_name)
               end
-            elsif !send(reverse_association.name).nil?
-              if send(reverse_association.name).respond_to?(reverse_through_association.name) && !send(reverse_association.name).send(reverse_through_association.name).nil?
-                send(reverse_association.name).send(reverse_through_association.name).expire_association_cache(association_name)
+            elsif !send(method_name).nil?
+              if send(method_name).respond_to?(reverse_through_association.name) && !send(method_name).send(reverse_through_association.name).nil?
+                send(method_name).send(reverse_through_association.name).expire_association_cache(association_name)
               end
             end
+
           end
         end
       end
@@ -91,20 +106,25 @@ module Cacheable
       }
 
       association.klass.class_eval do
-        after_commit "expire_#{association_name}_cache".to_sym
+        after_commit :"expire_#{association_name}_cache"
 
-        define_method "expire_#{association_name}_cache" do
-          if respond_to? "cached_#{reverse_association.name}".to_sym
-            unless send("cached_#{reverse_association.name}").nil?
+        define_method :"expire_#{association_name}_cache" do
+
+          method_name = :"#{reverse_association.name}"
+          cached_method_name = :"cached_#{reverse_association.name}"
+
+          if respond_to? cached_method_name
+            unless send(cached_method_name).nil?
               # cached_viewable.expire_association_cache
-              send("cached_#{reverse_association.name}").expire_association_cache(association_name)
+              send(cached_method_name).expire_association_cache(association_name)
             end
-          elsif !send("#{reverse_association.name}").nil?
-            send("#{reverse_association.name}").each do |assoc|
+          elsif !send(method_name).nil?
+            send(method_name).each do |assoc|
               next if assoc.nil?
               assoc.expire_association_cache(association_name)
             end
           end
+
         end
       end
     end
@@ -115,16 +135,21 @@ module Cacheable
       }
 
       association.klass.class_eval do
-        after_commit "expire_#{association_name}_cache".to_sym
+        after_commit :"expire_#{association_name}_cache"
 
-        define_method "expire_#{association_name}_cache" do
-          if respond_to? "cached_#{reverse_association.name}".to_sym
-            unless send("cached_#{reverse_association.name}").nil?
-              send("cached_#{reverse_association.name}").expire_association_cache(association_name)
+        define_method :"expire_#{association_name}_cache" do
+
+          cached_method_name = :"cached_#{reverse_association.name}"
+          method_name = :"#{reverse_association.name}"
+
+          if respond_to? cached_method_name
+            unless send(cached_method_name).nil?
+              send(cached_method_name).expire_association_cache(association_name)
             end
-          elsif !send("#{reverse_association.name}").nil?
-            send("#{reverse_association.name}").expire_association_cache(association_name)
+          elsif !send(method_name).nil?
+            send(method_name).expire_association_cache(association_name)
           end
+
         end
       end
     end

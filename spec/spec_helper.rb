@@ -3,6 +3,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require 'rails'
 require 'active_record'
+require 'support/ar_patches'
 require 'rspec'
 require 'mocha/api'
 require 'memcached'
@@ -95,3 +96,5 @@ RSpec.configure do |config|
     end
   end
 end
+
+
