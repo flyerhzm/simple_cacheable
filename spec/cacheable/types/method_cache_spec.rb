@@ -32,12 +32,12 @@ describe Cacheable do
 
   context "descendant should inherit methods" do
     it "should not cache Descendant.last_post" do
-      Rails.cache.read("descendants/#{@descendant.id}/method/last_post").should be_nil
+      Rails.cache.read("users/#{@descendant.id}/method/last_post").should be_nil
     end
 
     it "should cache Descendant#last_post" do
       @descendant.cached_last_post.should == @descendant.last_post
-      Rails.cache.read("descendants/#{@descendant.id}/method/last_post").should == @descendant.last_post
+      Rails.cache.read("users/#{@descendant.id}/method/last_post").should == @descendant.last_post
     end
 
     it "should cache Descendant#last_post multiple times" do
@@ -47,12 +47,12 @@ describe Cacheable do
 
     context "as well as new methods" do
       it "should not cache Descendant.name" do
-        Rails.cache.read("descendants/#{@descendant.id}/method/name").should be_nil
+        Rails.cache.read("users/#{@descendant.id}/method/name").should be_nil
       end
 
       it "should cache Descendant#name" do
         @descendant.cached_name.should == @descendant.name
-        Rails.cache.read("descendants/#{@descendant.id}/method/name").should == @descendant.name
+        Rails.cache.read("users/#{@descendant.id}/method/name").should == @descendant.name
       end
 
       it "should cache Descendant#name multiple times" do

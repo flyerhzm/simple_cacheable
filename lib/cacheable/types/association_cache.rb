@@ -39,7 +39,6 @@ module Cacheable
     def build_cache_belongs_to(association, association_name)
       polymorphic = association.options[:polymorphic]
       polymorphic ||= false
-
       method_name = "cached_#{association_name}"
       define_method(method_name) do
         if instance_variable_get("@#{method_name}").nil?
