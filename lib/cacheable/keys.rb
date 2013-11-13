@@ -49,14 +49,25 @@ module Cacheable
 
         if polymorphic && self.respond_to?(:"#{name}_type")
           return nil unless self.send(:"#{name}_type").present?
-          "#{self.send(:"#{name}_type").constantize.base_class.name.tableize}/#{self.send(:"#{name}_id")}"
+          "#{base_class_or_name(self.send(:"#{name}_type"))}/#{self.send(:"#{name}_id")}"
         else
-          "#{name.capitalize.constantize.base_class.name.tableize}/#{self.send(:"#{name}_id")}"
+          "#{base_class_or_name(name)}/#{self.send(:"#{name}_id")}"
         end
       end
 
       def have_association_cache_key(name)
         "#{model_cache_key}/association/#{name}"
+      end
+
+      # If it isa class.  It should be the base_class name
+      # else it should just be a name tableized
+      def base_class_or_name(name)
+        name = begin
+          name.capitalize.constantize.base_class.name
+        rescue NameError # uninitialized constant
+          name
+        end
+        name.tableize
       end
 
     end

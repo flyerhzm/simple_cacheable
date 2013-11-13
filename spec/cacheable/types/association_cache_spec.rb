@@ -30,6 +30,8 @@ describe Cacheable do
     @group1   = Group.create(name: "Ruby On Rails")
     @account  = @user.create_account(group: @group1)
     @location = @post1.create_location(city: "New York")
+    @account_location = @account.create_account_location(city: "New Orleans")
+    @account.save # @account doesn't persist location id?
   end
 
   before :each do
@@ -439,6 +441,13 @@ describe Cacheable do
       expect {
         comment.save
       }.to_not raise_exception
+    end
+  end
+
+  describe "association class name bug" do
+    it "should handle associations with different names" do
+      @user.account.account_location.should == @account_location
+      @user.cached_account.cached_account_location.should == @account_location
     end
   end
 
