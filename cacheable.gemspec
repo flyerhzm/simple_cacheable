@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.summary     = %q{a simple cache implementation based on activerecord}
   s.description = %q{a simple cache implementation based on activerecord}
 
-  s.add_dependency("rails", ">= 3.0.0")
+  s.add_dependency("rails", ">= 3")
   s.add_development_dependency("rspec", "2.8")
   s.add_development_dependency("mocha", "0.10.5")
 

@@ -30,6 +30,8 @@ describe Cacheable do
     @group1   = Group.create(name: "Ruby On Rails")
     @account  = @user.create_account(group: @group1)
     @location = @post1.create_location(city: "New York")
+    @account_location = @account.create_account_location(city: "New Orleans")
+    @account.save # @account doesn't persist location id?
   end
 
   before :each do
@@ -59,6 +61,14 @@ describe Cacheable do
         @post1.cached_user.should == @user
       end
 
+      it "should not expire cached user on save" do
+        Rails.cache.read("users/#{@user.id}").should be_nil
+        @post1.cached_user.should == @user
+        Rails.cache.read("users/#{@user.id}").should == coder.call(@user)
+        @post1.save
+        Rails.cache.read("users/#{@user.id}").should == coder.call(@user)
+      end
+
       it "should cache Comment#commentable with polymorphic" do
         Rails.cache.read("posts/#{@post1.id}").should be_nil
         @comment1.cached_commentable.should == @post1
@@ -85,6 +95,24 @@ describe Cacheable do
         @user.cached_posts.should == [@post1, @post2]
       end
 
+      it "should expire associations on save of associated objects" do
+        pending #heisenbug.  When inspected it works fine
+        Rails.cache.read("users/#{@user.id}/association/posts").should be_nil
+        @user.cached_posts.should == [@post1, @post2]
+        Rails.cache.read("users/#{@user.id}/association/posts").should_not be_nil
+        @post1.save
+        Rails.cache.read("users/#{@user.id}/association/posts").should be_nil
+      end
+
+      it "should expire associations on save of parent" do
+        pending #heisenbug.  When inspected it works fine
+        Rails.cache.read("users/#{@user.id}/association/posts").should be_nil
+        @user.cached_posts.should == [@post1, @post2]
+        Rails.cache.read("users/#{@user.id}/association/posts").should_not be_nil
+        @user.save
+        Rails.cache.read("users/#{@user.id}/association/posts").should be_nil
+      end
+
       it "should return empty if there are none" do
         @user2.cached_posts.should == []
       end
@@ -103,6 +131,15 @@ describe Cacheable do
       it "should cache Post#comments multiple times" do
         @post1.cached_comments
         @post1.cached_comments.should == [@comment1, @comment2]
+      end
+
+      it "should expire associations on save" do
+        pending
+        Rails.cache.read("posts/#{@post1.id}/association/comments").should be_nil
+        @post1.cached_comments.should == [@comment1, @comment2]
+        Rails.cache.read("posts/#{@post1.id}/association/comments").should == [coder.call(@comment1), coder.call(@comment2)]
+        @post1.save
+        Rails.cache.read("posts/#{@post1.id}/association/comments").should be_nil
       end
 
       it "should return empty if there are none" do
@@ -125,6 +162,15 @@ describe Cacheable do
         @user.cached_account.should == @account
       end
 
+      it "should expire association on save" do
+        pending
+        Rails.cache.read("users/#{@user.id}/association/account").should be_nil
+        @user.cached_account.should == @account
+        Rails.cache.read("users/#{@user.id}/association/account").should == coder.call(@account)
+        @user.save
+        Rails.cache.read("users/#{@user.id}/association/account").should be_nil
+      end
+
       it "should return nil if there are none" do
         @user2.cached_account.should be_nil
       end
@@ -143,6 +189,15 @@ describe Cacheable do
       it "should cache User#images multiple times" do
         @user.cached_images
         @user.cached_images.should == [@image1, @image2]
+      end
+
+      it "should expire associations on save" do
+        pending
+        Rails.cache.read("users/#{@user.id}/association/images").should be_nil
+        @user.cached_images.should == [@image1, @image2]
+        Rails.cache.read("users/#{@user.id}/association/images").should == [coder.call(@image1), coder.call(@image2)]
+        @user.save
+        Rails.cache.read("users/#{@user.id}/association/images").should be_nil
       end
 
       context "expiry" do
@@ -180,6 +235,15 @@ describe Cacheable do
         @user.cached_group.should == @group1
       end
 
+      it "should expire association on save" do
+        pending
+        Rails.cache.read("users/#{@user.id}/association/group").should be_nil
+        @user.cached_group.should == @group1
+        Rails.cache.read("users/#{@user.id}/association/group").should == coder.call(@group1)
+        @user.save
+        Rails.cache.read("users/#{@user.id}/association/group").should be_nil
+      end
+
       it "should return nil if there are none" do
         @user2.cached_group.should be_nil
       end
@@ -200,6 +264,15 @@ describe Cacheable do
       it "should handle multiple requests" do
         @post1.cached_tags
         @post1.cached_tags.should == [@tag1, @tag2]
+      end
+
+      it "should expire association on save" do
+        pending
+        Rails.cache.read("posts/#{@post1.id}/association/tags").should be_nil
+        @post1.cached_tags.should == [@tag1, @tag2]
+        Rails.cache.read("posts/#{@post1.id}/association/tags").should == [coder.call(@tag1), coder.call(@tag2)]
+        @post1.save
+        Rails.cache.read("posts/#{@post1.id}/association/tags").should be_nil
       end
 
       it "should return empty if there are none" do
@@ -358,6 +431,23 @@ describe Cacheable do
         @user.cached_posts.should == @user.posts
         @user.cached_posts.should == @user.posts
       end
+    end
+  end
+
+  describe "empty polymorphic" do
+    let(:comment) { Comment.new }
+
+    it "should save" do
+      expect {
+        comment.save
+      }.to_not raise_exception
+    end
+  end
+
+  describe "association class name bug" do
+    it "should handle associations with different names" do
+      @user.account.account_location.should == @account_location
+      @user.cached_account.cached_account_location.should == @account_location
     end
   end
 
