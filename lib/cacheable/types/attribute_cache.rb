@@ -24,7 +24,7 @@ module Cacheable
           self.cached_indices["#{attribute}"] ||= []
           self.cached_indices["#{attribute}"] << value
           Cacheable::ModelFetch.fetch(all_attribute_cache_key("#{attribute}", value)) do
-            self.send("find_all_by_#{attribute}", value)
+            self.where("#{attribute}" => value).load
           end
         end
       end
