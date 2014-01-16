@@ -8,6 +8,7 @@ require 'rspec'
 require 'mocha/api'
 require 'memcached'
 require 'cacheable'
+require 'friendly_id'
 
 # It needs this order otherwise cacheable throws
 # errors when looking for reflection classes
