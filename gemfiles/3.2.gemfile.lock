@@ -1,7 +1,7 @@
 PATH
-  remote: ..
+  remote: /Users/ScotterC/code/github/simple_cacheable
   specs:
-    simple_cacheable (1.4.1)
+    simple_cacheable (1.5.0)
       rails (>= 3)
 
 GEM
