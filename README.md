@@ -1,4 +1,4 @@
-cacheable
+Simple Cacheable [![Build Status](https://travis-ci.org/flyerhzm/simple_cacheable.png?branch=master)](https://travis-ci.org/flyerhzm/simple_cacheable)
 =========
 
 cacheable is a simple cache implementation based on activerecord, it is
