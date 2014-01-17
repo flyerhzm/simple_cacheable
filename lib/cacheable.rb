@@ -26,13 +26,14 @@ module Cacheable
     string.sub(/\?\Z/, '_query').sub(/!\Z/, '_bang')
   end
 
+  def self.rails4?
+    ActiveRecord::VERSION::MAJOR >= 4
+  end
+
   module ClassMethods
     def model_cache(&block)
       instance_exec &block
     end
-
-    
-
   end
 
 end

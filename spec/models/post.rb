@@ -1,8 +1,14 @@
 class Post < ActiveRecord::Base
   include Cacheable
+  extend FriendlyId
 
   belongs_to :location
   belongs_to :user
+
+  friendly_modules = [:slugged]
+  friendly_modules << :finders if Cacheable.rails4?
+
+  friendly_id :title, use: friendly_modules
 
   has_many :comments, :as => :commentable
   has_many :images, :as => :viewable
@@ -37,11 +43,4 @@ class Post < ActiveRecord::Base
   def to_param
     slug
   end
-
-  # Hack to mimic friendly id
-  def self.find(id)
-    return super unless id.to_i == 0
-    where(:slug => id).first or super
-  end
-
 end
