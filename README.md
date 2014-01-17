@@ -68,7 +68,7 @@ Advanced Usage
 
 ````ruby
   # Utilize Simple Cacheable to cache ActiveRecord objects without marshalling errors
-  Cacheable::ModelFetch.fetch "collection_of_twelve_users", expires_in: 1.day do
+  Cacheable.fetch "collection_of_twelve_users", expires_in: 1.day do
     User.limit(12)
   end
 ````

@@ -19,7 +19,8 @@ class Post < ActiveRecord::Base
     with_key
     with_attribute :user_id
     with_association :user, :comments, :images, :tags
-    with_class_method :retrieve_with_user_id, :retrieve_with_both, :default_post
+    with_class_method :retrieve_with_user_id, :retrieve_with_both, :default_post,
+                      :where_options_are
   end
 
   before_validation :create_slug
@@ -34,6 +35,10 @@ class Post < ActiveRecord::Base
 
   def self.retrieve_with_both(user_id, post_id)
     Post.find(post_id) == Post.find_by_user_id(user_id)
+  end
+
+  def self.where_options_are(options={})
+    Post.where(options).first
   end
 
   def create_slug

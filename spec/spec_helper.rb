@@ -93,6 +93,10 @@ RSpec.configure do |config|
       end
     end
 
+    config.before :each do
+      Rails.cache.clear
+    end
+
   end
 
   config.after :all do

@@ -1,7 +1,6 @@
 module Cacheable
   module ModelFetch
-
-    def self.fetch(key, options=nil)
+    def fetch(key, options=nil)
       unless result = read(key, options)
         if block_given?
           result = yield
@@ -13,11 +12,11 @@ module Cacheable
 
     private
 
-    def self.write(key, value, options=nil)
+    def write(key, value, options=nil)
       options ||= {}
-      coder = if value.respond_to?(:to_a)
-        value = value.to_a
-        value.map {|obj| coder_from_record(obj) }
+
+      coder = if !value.is_a?(Hash) && value.respond_to?(:to_a)
+        value.to_a.map {|obj| coder_from_record(obj) }
       else
         coder_from_record(value)
       end
@@ -26,33 +25,35 @@ module Cacheable
       coder
     end
 
-    def self.read(key, options=nil)
+    def read(key, options=nil)
       options ||= {}
-      coder = Rails.cache.read(key, options)
-      return nil if coder.nil?
+      value = Rails.cache.read(key, options)
+      return nil if value.nil?
 
-      if coder.is_a?(Hash)
-        record_from_coder(coder)
+      if !coder?(value) && value.respond_to?(:to_a)
+        value.to_a.map { |obj| record_from_coder(obj) }
       else
-        coder.map { |obj| record_from_coder(obj) }
+        record_from_coder(value)
       end
     end
 
-    def self.coder_from_record(record)
+    def coder_from_record(record)
       return if record.nil?
-      if record.is_a?(ActiveRecord::Base)
-        coder = { :class => record.class }
-        record.encode_with(coder)
-        coder
-      else
-        record
-      end
+      return record unless record.is_a?(ActiveRecord::Base)
+
+      coder = { :class => record.class }
+      record.encode_with(coder)
+      coder
     end
 
-    def self.record_from_coder(coder)
-      return coder if coder.is_a?(ActiveRecord::Base)
+    def record_from_coder(coder)
+      return coder unless coder?(coder)
       record = coder[:class].allocate
       record.init_with(coder)
+    end
+
+    def coder?(value)
+      value.is_a?(Hash) && value[:class].present?
     end
   end
 end

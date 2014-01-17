@@ -13,7 +13,6 @@ describe Cacheable do
   end
 
   before :each do
-    cache.clear
     @user.reload
   end
 
@@ -92,7 +91,7 @@ describe Cacheable do
 
       it "should have cached_methods" do
         User.cached_methods.should_not be_nil
-        User.cached_methods.should == [:last_post, :bad_iv_name!, :bad_iv_name?]
+        User.cached_methods.should == [:last_post, :bad_iv_name!, :bad_iv_name?, :admin?, :hash_with_class_key]
       end
     end
 
@@ -119,7 +118,7 @@ describe Cacheable do
 
       it "should have cached_methods" do
         Descendant.cached_methods.should_not be_nil
-        Descendant.cached_methods.should == [:last_post, :bad_iv_name!, :bad_iv_name?, :name]
+        Descendant.cached_methods.should == [:last_post, :bad_iv_name!, :bad_iv_name?, :admin?, :hash_with_class_key, :name]
       end
 
       context "expiring method cache" do

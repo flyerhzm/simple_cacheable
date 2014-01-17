@@ -15,7 +15,7 @@ module Cacheable
         define_singleton_method("find_cached_by_#{attribute}") do |value|
           self.cached_indices["#{attribute}"] ||= []
           self.cached_indices["#{attribute}"] << value
-          Cacheable::ModelFetch.fetch(attribute_cache_key("#{attribute}", value)) do
+          Cacheable.fetch(attribute_cache_key("#{attribute}", value)) do
             self.send("find_by_#{attribute}", value)
           end
         end
@@ -23,7 +23,7 @@ module Cacheable
         define_singleton_method("find_cached_all_by_#{attribute}") do |value|
           self.cached_indices["#{attribute}"] ||= []
           self.cached_indices["#{attribute}"] << value
-          Cacheable::ModelFetch.fetch(all_attribute_cache_key("#{attribute}", value)) do
+          Cacheable.fetch(all_attribute_cache_key("#{attribute}", value)) do
             if Cacheable.rails4?
               self.where("#{attribute}" => value).load
             else

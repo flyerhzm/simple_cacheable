@@ -12,7 +12,6 @@ describe Cacheable do
   end
 
   before :each do
-    cache.clear
     @user.reload
   end
 

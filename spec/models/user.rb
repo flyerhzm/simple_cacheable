@@ -10,7 +10,7 @@ class User < ActiveRecord::Base
   model_cache do
     with_key
     with_attribute :login
-    with_method :last_post, :bad_iv_name!, :bad_iv_name?
+    with_method :last_post, :bad_iv_name!, :bad_iv_name?, :admin?, :hash_with_class_key
     with_association :posts, :account, :images, :group
     with_class_method :default_name, :user_with_id, :user_with_email,
                       :users_with_ids, :users_with_ids_in, :user_with_attributes
@@ -30,6 +30,14 @@ class User < ActiveRecord::Base
 
   def bad_iv_name?
     44
+  end
+
+  def admin?
+    false
+  end
+
+  def hash_with_class_key
+    {:foo => "Bar", :class => "batman"}
   end
 
     # accepts a number
