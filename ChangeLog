@@ -1,3 +1,12 @@
+1.5.0
+* Better polymorphic support
+* Memoization of all lookups to stop repeats
+* Marshalling of AR objects fixed
+* friendly with FriendlyID and slugs
+* Tested against Rails 4 and 3.2
+* Cache implementation for outside use with marshal handling
+* Methods handle all argument datatypes
+
 1.4.1
 * Fixed all silent failures for assocations that didn't exist
 

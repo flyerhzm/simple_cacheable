@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
   s.homepage    = "https://github.com/flyerhzm/simple_cacheable"
   s.summary     = %q{a simple cache implementation based on activerecord}
   s.description = %q{a simple cache implementation based on activerecord}
+  s.license     = "MIT"
 
   s.add_dependency("rails", ">= 3")
   s.add_development_dependency("rspec", "2.8")
