@@ -3,13 +3,6 @@ require 'spec_helper'
 describe Cacheable do
   let(:cache) { Rails.cache }
 
-  let(:coder) { lambda do |object|
-                  coder = {:class => object.class}
-                  object.encode_with(coder)
-                  coder
-                end
-              }
-
   before :all do
     @user     = User.create(:login => 'flyerhzm')
     @group1   = Group.create(name: "Ruby On Rails")
@@ -65,7 +58,7 @@ describe Cacheable do
       @group1.save
       Rails.cache.read("users/#{@user.id}/association/group").should be_nil
       @user.cached_group.should == @group1
-      Rails.cache.read("users/#{@user.id}/association/group").should == coder.call(@group1)
+      Rails.cache.read("users/#{@user.id}/association/group").should == coder(@group1)
     end
   end
 end

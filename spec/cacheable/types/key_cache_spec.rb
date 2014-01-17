@@ -2,10 +2,6 @@ require 'spec_helper'
 
 describe Cacheable do
   let(:cache) { Rails.cache }
-  let(:coder) { lambda do |object|
-                  Cacheable::ModelFetch.send(:coder_from_record, object)
-                end
-              }
 
   before :all do
     @user  = User.create(:login => 'flyerhzm')
@@ -24,7 +20,7 @@ describe Cacheable do
 
   it "should cache by User#id" do
     User.find_cached(@user.id).should == @user
-    Rails.cache.read("users/#{@user.id}").should == coder.call(@user)
+    Rails.cache.read("users/#{@user.id}").should == coder(@user)
   end
 
   it "should get cached by User#id multiple times" do
@@ -44,26 +40,26 @@ describe Cacheable do
     it "should cache it with id" do
       Rails.cache.read("posts/#{@post1.id}").should == nil
       Post.find_cached(@post1.id)
-      Rails.cache.read("posts/#{@post1.id}").should == coder.call(@post1)
+      Rails.cache.read("posts/#{@post1.id}").should == coder(@post1)
     end
 
     it "should cache it with slug" do
       Rails.cache.read("posts/#{@post1.slug}").should == nil
       Post.find_cached(@post1.slug)
-      Rails.cache.read("posts/#{@post1.slug}").should == coder.call(@post1)
+      Rails.cache.read("posts/#{@post1.slug}").should == coder(@post1)
     end
 
     describe "it should expire both" do
       it "should expire it with id" do
         Post.find_cached(@post1.id)
-        Rails.cache.read("posts/#{@post1.id}").should == coder.call(@post1)
+        Rails.cache.read("posts/#{@post1.id}").should == coder(@post1)
         @post1.save
         Rails.cache.read("posts/#{@post1.id}").should == nil
       end
 
       it "should expire it with slug" do
         Post.find_cached(@post1.slug)
-        Rails.cache.read("posts/#{@post1.slug}").should == coder.call(@post1)
+        Rails.cache.read("posts/#{@post1.slug}").should == coder(@post1)
         @post1.save
         Rails.cache.read("posts/#{@post1.slug}").should == nil
       end

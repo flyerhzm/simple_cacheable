@@ -31,22 +31,26 @@ module Cacheable
       coder = Rails.cache.read(key, options)
       return nil if coder.nil?
 
-      if coder.is_a?(Array)
-        coder.map { |obj| record_from_coder(obj) }
-      else
+      if coder.is_a?(Hash)
         record_from_coder(coder)
+      else
+        coder.map { |obj| record_from_coder(obj) }
       end
     end
 
     def self.coder_from_record(record)
-      unless record.nil?
+      return if record.nil?
+      if record.is_a?(ActiveRecord::Base)
         coder = { :class => record.class }
         record.encode_with(coder)
         coder
+      else
+        record
       end
     end
 
     def self.record_from_coder(coder)
+      return coder if coder.is_a?(ActiveRecord::Base)
       record = coder[:class].allocate
       record.init_with(coder)
     end
