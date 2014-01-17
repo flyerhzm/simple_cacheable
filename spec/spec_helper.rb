@@ -4,6 +4,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 require 'rails'
 require 'active_record'
 require 'support/ar_patches'
+require 'support/coder_macro'
 require 'rspec'
 require 'mocha/api'
 require 'memcached'
@@ -40,6 +41,8 @@ RSpec.configure do |config|
 
   config.filter_run focus: true
   config.run_all_when_everything_filtered = true
+
+  config.include CoderMacro
 
   config.before :all do
     ::ActiveRecord::Schema.define(:version => 1) do

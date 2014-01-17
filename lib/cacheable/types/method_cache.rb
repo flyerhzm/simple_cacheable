@@ -14,7 +14,7 @@ module Cacheable
           iv = Cacheable.escape_punctuation("@#{method_name}")
           if instance_variable_get(iv).nil?
             instance_variable_set(iv,
-              (Rails.cache.fetch method_cache_key(meth) do
+              (Cacheable::ModelFetch.fetch method_cache_key(meth) do
                 send(meth)
               end)
             )

@@ -22,7 +22,7 @@ describe Cacheable do
 
   it "should cache User#last_post" do
     @user.cached_last_post.should == @user.last_post
-    Rails.cache.read("users/#{@user.id}/method/last_post").should == @user.last_post
+    Rails.cache.read("users/#{@user.id}/method/last_post").should == coder(@user.last_post)
   end
 
   it "should cache User#last_post multiple times" do
@@ -37,7 +37,7 @@ describe Cacheable do
 
     it "should cache Descendant#last_post" do
       @descendant.cached_last_post.should == @descendant.last_post
-      Rails.cache.read("users/#{@descendant.id}/method/last_post").should == @descendant.last_post
+      Rails.cache.read("users/#{@descendant.id}/method/last_post").should == coder(@descendant.last_post)
     end
 
     it "should cache Descendant#last_post multiple times" do
@@ -75,7 +75,7 @@ describe Cacheable do
     end
 
     it "hits the cache only once" do
-      Rails.cache.expects(:fetch).returns(@user.last_post).once
+      Cacheable::ModelFetch.expects(:fetch).returns(@user.last_post).once
       @user.cached_last_post.should == @user.last_post
       @user.cached_last_post.should == @user.last_post
     end

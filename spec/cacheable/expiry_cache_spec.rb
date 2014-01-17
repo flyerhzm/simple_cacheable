@@ -3,11 +3,6 @@ require 'spec_helper'
 describe Cacheable do
   let(:cache) { Rails.cache }
 
-  let(:coder) { lambda do |object|
-                  Cacheable::ModelFetch.send(:coder_from_record, object)
-                end
-              }
-
   before :all do
     @user       = User.create(:login => 'flyerhzm')
     @descendant = Descendant.create(:login => "scotterc")
@@ -131,7 +126,8 @@ describe Cacheable do
         it "expires correctly from inherited attributes" do
           Rails.cache.read("users/#{@descendant.id}/method/last_post").should be_nil
           @descendant.cached_last_post.should == @descendant.last_post
-          Rails.cache.read("users/#{@descendant.id}/method/last_post").should == @descendant.last_post
+          Rails.cache.read("users/#{@descendant.id}/method/last_post").should == {:class => @descendant.last_post.class,
+                                                                                  'attributes' => @descendant.last_post.attributes}
           @descendant.expire_model_cache
           Rails.cache.read("users/#{@descendant.id}/method/last_post").should be_nil
         end
@@ -151,7 +147,7 @@ describe Cacheable do
         it "expires correctly from inherited attributes" do
           Rails.cache.read("users/#{@descendant.id}/association/posts").should be_nil
           @descendant.cached_posts.should == [@post3]
-          Rails.cache.read("users/#{@descendant.id}/association/posts").should == [coder.call(@post3)]
+          Rails.cache.read("users/#{@descendant.id}/association/posts").should == [coder(@post3)]
           @descendant.expire_model_cache
           Rails.cache.read("users/#{@descendant.id}/association/posts").should be_nil
         end

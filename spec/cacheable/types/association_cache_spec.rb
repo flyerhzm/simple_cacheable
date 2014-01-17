@@ -3,18 +3,6 @@ require 'spec_helper'
 describe Cacheable do
   let(:cache) { Rails.cache }
 
-  let(:coder) { lambda do |object|
-                  Cacheable::ModelFetch.send(:coder_from_record, object)
-                end
-              }
-
-  let(:multi_coder) { lambda do |objects|
-      objects.map do |object|
-        Cacheable::ModelFetch.send(:coder_from_record, object)
-      end
-    end
-  }
-
   before :all do
     @user     = User.create(:login => 'flyerhzm')
     @user2    =  User.create(:login => 'ScotterC')
@@ -53,7 +41,7 @@ describe Cacheable do
 
       it "should cache Post#user" do
         @post1.cached_user.should == @user
-        Rails.cache.read("users/#{@user.id}").should == coder.call(@user)
+        Rails.cache.read("users/#{@user.id}").should == coder(@user)
       end
 
       it "should cache Post#user multiple times" do
@@ -64,15 +52,15 @@ describe Cacheable do
       it "should not expire cached user on save" do
         Rails.cache.read("users/#{@user.id}").should be_nil
         @post1.cached_user.should == @user
-        Rails.cache.read("users/#{@user.id}").should == coder.call(@user)
+        Rails.cache.read("users/#{@user.id}").should == coder(@user)
         @post1.save
-        Rails.cache.read("users/#{@user.id}").should == coder.call(@user)
+        Rails.cache.read("users/#{@user.id}").should == coder(@user)
       end
 
       it "should cache Comment#commentable with polymorphic" do
         Rails.cache.read("posts/#{@post1.id}").should be_nil
         @comment1.cached_commentable.should == @post1
-        Rails.cache.read("posts/#{@post1.id}").should == coder.call(@post1)
+        Rails.cache.read("posts/#{@post1.id}").should == coder(@post1)
       end
 
       it "should return nil if there are none" do
@@ -87,7 +75,7 @@ describe Cacheable do
 
       it "should cache User#posts" do
         @user.cached_posts.should == [@post1, @post2]
-        Rails.cache.read("users/#{@user.id}/association/posts").should == [coder.call(@post1), coder.call(@post2)]
+        Rails.cache.read("users/#{@user.id}/association/posts").should == [coder(@post1), coder(@post2)]
       end
 
       it "should cache User#posts multiple times" do
@@ -125,7 +113,7 @@ describe Cacheable do
 
       it "should cache Post#comments" do
         @post1.cached_comments.should == [@comment1, @comment2]
-        Rails.cache.read("posts/#{@post1.id}/association/comments").should == [coder.call(@comment1), coder.call(@comment2)]
+        Rails.cache.read("posts/#{@post1.id}/association/comments").should == [coder(@comment1), coder(@comment2)]
       end
 
       it "should cache Post#comments multiple times" do
@@ -137,7 +125,7 @@ describe Cacheable do
         pending
         Rails.cache.read("posts/#{@post1.id}/association/comments").should be_nil
         @post1.cached_comments.should == [@comment1, @comment2]
-        Rails.cache.read("posts/#{@post1.id}/association/comments").should == [coder.call(@comment1), coder.call(@comment2)]
+        Rails.cache.read("posts/#{@post1.id}/association/comments").should == [coder(@comment1), coder(@comment2)]
         @post1.save
         Rails.cache.read("posts/#{@post1.id}/association/comments").should be_nil
       end
@@ -154,7 +142,7 @@ describe Cacheable do
 
       it "should cache User#posts" do
         @user.cached_account.should == @account
-        Rails.cache.read("users/#{@user.id}/association/account").should == coder.call(@account)
+        Rails.cache.read("users/#{@user.id}/association/account").should == coder(@account)
       end
 
       it "should cache User#posts multiple times" do
@@ -166,7 +154,7 @@ describe Cacheable do
         pending
         Rails.cache.read("users/#{@user.id}/association/account").should be_nil
         @user.cached_account.should == @account
-        Rails.cache.read("users/#{@user.id}/association/account").should == coder.call(@account)
+        Rails.cache.read("users/#{@user.id}/association/account").should == coder(@account)
         @user.save
         Rails.cache.read("users/#{@user.id}/association/account").should be_nil
       end
@@ -183,7 +171,7 @@ describe Cacheable do
 
       it "should cache User#images" do
         @user.cached_images.should == [@image1, @image2]
-        Rails.cache.read("users/#{@user.id}/association/images").should == [coder.call(@image1), coder.call(@image2)]
+        Rails.cache.read("users/#{@user.id}/association/images").should == [coder(@image1), coder(@image2)]
       end
 
       it "should cache User#images multiple times" do
@@ -195,7 +183,7 @@ describe Cacheable do
         pending
         Rails.cache.read("users/#{@user.id}/association/images").should be_nil
         @user.cached_images.should == [@image1, @image2]
-        Rails.cache.read("users/#{@user.id}/association/images").should == [coder.call(@image1), coder.call(@image2)]
+        Rails.cache.read("users/#{@user.id}/association/images").should == [coder(@image1), coder(@image2)]
         @user.save
         Rails.cache.read("users/#{@user.id}/association/images").should be_nil
       end
@@ -209,9 +197,9 @@ describe Cacheable do
           @image3 = @post1.images.create
           Rails.cache.read("users/#{@user.id}/association/images").should be_nil
           @user.cached_images.should == [@image1, @image2, @image3]
-          Rails.cache.read("users/#{@user.id}/association/images").should == [coder.call(@image1),
-                                                                             coder.call(@image2),
-                                                                             coder.call(@image3)]
+          Rails.cache.read("users/#{@user.id}/association/images").should == [coder(@image1),
+                                                                             coder(@image2),
+                                                                             coder(@image3)]
         end
       end
 
@@ -227,7 +215,7 @@ describe Cacheable do
 
       it "should cache User#group" do
         @user.cached_group.should == @group1
-        Rails.cache.read("users/#{@user.id}/association/group").should == coder.call(@group1)
+        Rails.cache.read("users/#{@user.id}/association/group").should == coder(@group1)
       end
 
       it "should cache User#group multiple times" do
@@ -239,7 +227,7 @@ describe Cacheable do
         pending
         Rails.cache.read("users/#{@user.id}/association/group").should be_nil
         @user.cached_group.should == @group1
-        Rails.cache.read("users/#{@user.id}/association/group").should == coder.call(@group1)
+        Rails.cache.read("users/#{@user.id}/association/group").should == coder(@group1)
         @user.save
         Rails.cache.read("users/#{@user.id}/association/group").should be_nil
       end
@@ -258,7 +246,7 @@ describe Cacheable do
 
       it "should cache Post#tags" do
         @post1.cached_tags.should == [@tag1, @tag2]
-        Rails.cache.read("posts/#{@post1.id}/association/tags").should == [coder.call(@tag1), coder.call(@tag2)]
+        Rails.cache.read("posts/#{@post1.id}/association/tags").should == [coder(@tag1), coder(@tag2)]
       end
 
       it "should handle multiple requests" do
@@ -270,7 +258,7 @@ describe Cacheable do
         pending
         Rails.cache.read("posts/#{@post1.id}/association/tags").should be_nil
         @post1.cached_tags.should == [@tag1, @tag2]
-        Rails.cache.read("posts/#{@post1.id}/association/tags").should == [coder.call(@tag1), coder.call(@tag2)]
+        Rails.cache.read("posts/#{@post1.id}/association/tags").should == [coder(@tag1), coder(@tag2)]
         @post1.save
         Rails.cache.read("posts/#{@post1.id}/association/tags").should be_nil
       end
@@ -288,9 +276,9 @@ describe Cacheable do
           @tag3 = @post1.tags.create!(title: "Invalidation is hard")
           Rails.cache.read("posts/#{@post1.id}/association/tags").should be_nil
           @post1.cached_tags.should == [@tag1, @tag2, @tag3]
-          Rails.cache.read("posts/#{@post1.id}/association/tags").should == [coder.call(@tag1),
-                                                                             coder.call(@tag2),
-                                                                             coder.call(@tag3)]
+          Rails.cache.read("posts/#{@post1.id}/association/tags").should == [coder(@tag1),
+                                                                             coder(@tag2),
+                                                                             coder(@tag3)]
         end
       end
     end
@@ -370,7 +358,7 @@ describe Cacheable do
       end
 
       it "hits the cache only once" do
-        Rails.cache.expects(:read).returns(coder.call(@post1.user)).once
+        Rails.cache.expects(:read).returns(coder(@post1.user)).once
         @post1.cached_user.should == @post1.user
         @post1.cached_user.should == @post1.user
       end
@@ -389,7 +377,7 @@ describe Cacheable do
       end
 
       it "hits the cache only once" do
-        Rails.cache.expects(:read).returns(multi_coder.call(@user.images)).once
+        Rails.cache.expects(:read).returns(coder(@user.images)).once
         @user.cached_images.should == @user.images
         @user.cached_images.should == @user.images
       end
@@ -408,7 +396,7 @@ describe Cacheable do
       end
 
       it "hits the cache only once" do
-        Rails.cache.expects(:read).returns(multi_coder.call(@post1.tags)).once
+        Rails.cache.expects(:read).returns(coder(@post1.tags)).once
         @post1.cached_tags.should == @post1.tags
         @post1.cached_tags.should == @post1.tags
       end
@@ -427,7 +415,7 @@ describe Cacheable do
       end
 
       it "hits the cache only once" do
-        Rails.cache.expects(:read).returns(multi_coder.call(@user.posts)).once
+        Rails.cache.expects(:read).returns(coder(@user.posts)).once
         @user.cached_posts.should == @user.posts
         @user.cached_posts.should == @user.posts
       end
