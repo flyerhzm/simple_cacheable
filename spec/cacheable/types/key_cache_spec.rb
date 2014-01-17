@@ -8,9 +8,7 @@ describe Cacheable do
     @post1 = @user.posts.create(:title => 'post1')
   end
 
-
   before :each do
-    cache.clear
     @user.reload
   end
 

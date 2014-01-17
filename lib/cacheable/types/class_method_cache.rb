@@ -13,7 +13,7 @@ module Cacheable
         define_singleton_method("cached_#{meth}") do |*args|
           self.cached_class_methods["#{meth}"] ||= []
           self.cached_class_methods["#{meth}"] << args
-          Cacheable::ModelFetch.fetch class_method_cache_key(meth, args) do
+          Cacheable.fetch class_method_cache_key(meth, args) do
             self.method(meth).arity == 0 ? send(meth) : send(meth, *args)
           end
         end

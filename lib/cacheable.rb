@@ -5,7 +5,7 @@ require "cacheable/expiry"
 require "cacheable/model_fetch"
 
 module Cacheable
-  include ModelFetch
+  extend ModelFetch
 
   def self.included(base)
     base.extend(Cacheable::Caches)

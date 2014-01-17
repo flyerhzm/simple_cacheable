@@ -25,7 +25,7 @@ module Cacheable
             if instance_variable_get("@#{method_name}").nil?
               association_cache.delete(association_name)
               cache_key = have_association_cache_key(association_name)
-              result = Cacheable::ModelFetch.fetch(cache_key) do
+              result = Cacheable.fetch(cache_key) do
                 send(association_name)
               end
               instance_variable_set("@#{method_name}", result)
@@ -51,7 +51,7 @@ module Cacheable
           cache_key = belong_association_cache_key(association_name, polymorphic)
           result = if cache_key
             association_cache.delete(association_name)
-            Cacheable::ModelFetch.fetch(cache_key) do
+            Cacheable.fetch(cache_key) do
               send(association_name)
             end
           else

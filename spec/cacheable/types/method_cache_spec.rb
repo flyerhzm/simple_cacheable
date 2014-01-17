@@ -12,7 +12,6 @@ describe Cacheable do
   end
 
   before :each do
-    cache.clear
     @user.reload
   end
 
@@ -75,7 +74,7 @@ describe Cacheable do
     end
 
     it "hits the cache only once" do
-      Cacheable::ModelFetch.expects(:fetch).returns(@user.last_post).once
+      Cacheable.expects(:fetch).returns(@user.last_post).once
       @user.cached_last_post.should == @user.last_post
       @user.cached_last_post.should == @user.last_post
     end
@@ -92,6 +91,15 @@ describe Cacheable do
         @user.cached_bad_iv_name?.should == 44
         @user.instance_variable_get("@cached_bad_iv_name_query").should == 44
       end
+    end
+  end
+
+  describe "data types" do
+
+    it "handles boolean values" do
+      Rails.cache.read("users/#{@user.id}/method/admin?").should be_nil
+      @user.cached_admin?.should == false
+      Rails.cache.read("users/#{@user.id}/method/admin?").should be_false
     end
   end
 

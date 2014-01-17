@@ -9,7 +9,7 @@ module Cacheable
 
       define_singleton_method("find_cached") do |id|
         cache_key = self.instance_cache_key(id)
-        Cacheable::ModelFetch.fetch(cache_key) do
+        Cacheable.fetch(cache_key) do
           self.find(id)
         end
       end

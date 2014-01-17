@@ -23,7 +23,6 @@ describe Cacheable do
   end
 
   before :each do
-    cache.clear
     @user.reload
     @post1.reload
   end
