@@ -30,7 +30,7 @@ module Cacheable
       value = Rails.cache.read(key, options)
       return nil if value.nil?
 
-      if !coder?(value) && value.respond_to?(:to_a)
+      if !value.is_a?(Hash) && value.respond_to?(:to_a)
         value.to_a.map { |obj| record_from_coder(obj) }
       else
         record_from_coder(value)
@@ -48,7 +48,9 @@ module Cacheable
 
     def record_from_coder(coder)
       return coder unless coder?(coder)
-      record = coder[:class].allocate
+      klass = coder[:class]
+      return coder unless klass.is_a?(Class)
+      record = klass.allocate
       record.init_with(coder)
     end
 
