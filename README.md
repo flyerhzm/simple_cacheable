@@ -1,10 +1,10 @@
 Simple Cacheable [![Build Status](https://travis-ci.org/flyerhzm/simple_cacheable.png?branch=master)](https://travis-ci.org/flyerhzm/simple_cacheable)
 =========
 
-cacheable is a simple cache implementation based on activerecord, it is
+Simple Cacheable is a simple cache implementation based on activerecord, it is
 extracted from [rails-bestpractices.com][1].
 
-it supports activerecord >= 3.0.0, tested on 1.9.3 and 2.0.0 and works with jruby.
+it supports activerecord >= 3.0.0, tested on 2.0.0 and works with jruby.
 
 Introduction
 ------------

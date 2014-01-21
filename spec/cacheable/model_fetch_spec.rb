@@ -77,10 +77,17 @@ describe Cacheable do
   end
 
   describe "returning a hash with class key" do
+    it "handles a hash with a class key at fetch level" do
+      key = "cacheable_hash"
+      hash_value = {:superman => "Clark Kent", :batman => "Bruce Wayne"}
+      Cacheable.send(:write, key, hash_value)
+      Cacheable.send(:read, key).should == hash_value
+    end
+
     it "handles a hash with a class key" do
-      hash_value = {:foo => "Bar", :class => "batman"}
+      hash_value = @user.hash_with_class_key
       @user.cached_hash_with_class_key.should == hash_value
-      @user.cached_hash_with_class_key.should == hash_value
+      User.first.cached_hash_with_class_key.should == hash_value
     end
   end
 end
