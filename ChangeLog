@@ -1,3 +1,6 @@
+1.5.1
+* Bug Fix for hashes getting converted to arrays
+
 1.5.0
 * Better polymorphic support
 * Memoization of all lookups to stop repeats
