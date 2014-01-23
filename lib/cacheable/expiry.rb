@@ -6,12 +6,7 @@ module Cacheable
       expire_all_attribute_cache  if self.class.cached_indices.present?
       expire_method_cache         if self.class.cached_methods.present?
       expire_class_method_cache   if self.class.cached_class_methods.present?
-
-      if self.class.cached_associations.present?
-        self.class.cached_associations.each do |assoc|
-          expire_association_cache(assoc)
-        end
-      end
+      expire_associations_cache   if self.class.cached_associations.present?
     end
 
     def expire_key_cache
@@ -45,6 +40,12 @@ module Cacheable
         args.each do |arg|
           Rails.cache.delete self.class.class_method_cache_key(meth, arg)
         end
+      end
+    end
+
+    def expire_associations_cache
+      self.class.cached_associations.each do |assoc|
+        self.expire_association_cache(assoc)
       end
     end
 

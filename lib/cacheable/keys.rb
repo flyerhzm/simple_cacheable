@@ -9,22 +9,26 @@ module Cacheable
     module ClassKeys
 
       def attribute_cache_key(attribute, value)
-        "#{self.base_class.name.tableize}/attribute/#{attribute}/#{URI.escape(value.to_s)}"
+        "#{cacheable_table_name}/attribute/#{attribute}/#{URI.escape(value.to_s)}"
       end
 
       def all_attribute_cache_key(attribute, value)
-        "#{self.base_class.name.tableize}/attribute/#{attribute}/all/#{URI.escape(value.to_s)}"
+        "#{cacheable_table_name}/attribute/#{attribute}/all/#{URI.escape(value.to_s)}"
       end
 
       def class_method_cache_key(meth, *args)
-        key = "#{self.base_class.name.tableize}/class_method/#{meth}"
+        key = "#{cacheable_table_name}/class_method/#{meth}"
         args.flatten!
         key += "/#{args.join('+')}" if args.any?
         return key
       end
 
       def instance_cache_key(param)
-        "#{self.base_class.name.tableize}/#{param}"
+        "#{cacheable_table_name}/#{param}"
+      end
+
+      def cacheable_table_name
+        self.base_class.name.tableize
       end
 
     end
@@ -32,11 +36,11 @@ module Cacheable
     module InstanceKeys
 
       def model_cache_keys
-        ["#{self.class.base_class.name.tableize}/#{self.id.to_i}", "#{self.class.base_class.name.tableize}/#{self.to_param}"]
+        ["#{self.class.cacheable_table_name}/#{self.id.to_i}", "#{self.class.cacheable_table_name}/#{self.to_param}"]
       end
 
       def model_cache_key
-        "#{self.class.base_class.name.tableize}/#{self.id.to_i}"
+        "#{self.class.cacheable_table_name}/#{self.id.to_i}"
       end
 
       def method_cache_key(meth)
