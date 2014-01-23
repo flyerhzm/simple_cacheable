@@ -11,6 +11,8 @@ require 'memcached'
 require 'cacheable'
 require 'friendly_id'
 
+ActiveRecord::Base.send(:include, Cacheable)
+
 # It needs this order otherwise cacheable throws
 # errors when looking for reflection classes
 # Specifically, post can't be before tag

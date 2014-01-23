@@ -1,6 +1,4 @@
 class Comment < ActiveRecord::Base
-  include Cacheable
-
   belongs_to :commentable, :polymorphic => true
 
   model_cache do

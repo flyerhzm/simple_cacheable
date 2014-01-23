@@ -3,6 +3,7 @@ require "cacheable/caches"
 require "cacheable/keys"
 require "cacheable/expiry"
 require "cacheable/model_fetch"
+require "cacheable/railtie"
 
 module Cacheable
   extend ModelFetch
