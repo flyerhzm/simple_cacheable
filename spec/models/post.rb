@@ -1,5 +1,4 @@
 class Post < ActiveRecord::Base
-  include Cacheable
   extend FriendlyId
 
   belongs_to :location

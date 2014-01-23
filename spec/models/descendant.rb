@@ -1,5 +1,4 @@
 class Descendant < User
-
   belongs_to :location
 
   model_cache do

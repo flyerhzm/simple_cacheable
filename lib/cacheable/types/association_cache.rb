@@ -4,6 +4,10 @@ module Cacheable
       self.cached_associations ||= []
       self.cached_associations += association_names
 
+      class_eval do
+        after_commit :expire_associations_cache
+      end
+
       association_names.each do |association_name|
         association = reflect_on_association(association_name)
 
@@ -27,7 +31,6 @@ module Cacheable
           else
             have_association_cache_key(association_name)
           end
-
           result = if cache_key
             association_cache.delete(association_name)
             Cacheable.fetch(cache_key) do
@@ -51,7 +54,7 @@ module Cacheable
 
       method_name         = reverse_association.name
       cached_method_name  = :"cached_#{method_name}"
-      expire_method_name  = :"expire_#{association_name}_cache"
+      expire_method_name  = :"expire_#{cacheable_table_name}_#{association_name}_cache"
 
       if type == :has_through
         through_association_class = self.reflect_on_association(association.options[:through]).klass
@@ -66,10 +69,8 @@ module Cacheable
         after_commit expire_method_name
 
         define_method expire_method_name do
-
           if respond_to?(cached_method_name) && !send(cached_method_name).nil?
             send(cached_method_name).expire_association_cache(association_name)
-
           elsif !send(method_name).nil?
             case type
             when :has_through
@@ -77,7 +78,7 @@ module Cacheable
                 send(method_name).send(reverse_through_association.name).expire_association_cache(association_name)
               end
             else
-              send(method_name).to_a.each do |assoc|
+              [send(method_name)].flatten.each do |assoc|
                 next if assoc.nil?
                 assoc.expire_association_cache(association_name)
               end

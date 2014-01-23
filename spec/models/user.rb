@@ -1,6 +1,4 @@
 class User < ActiveRecord::Base
-  include Cacheable
-
   has_many :posts
   has_one :account
   has_many :images, through: :posts

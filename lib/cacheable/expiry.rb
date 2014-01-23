@@ -40,6 +40,8 @@ module Cacheable
         args.each do |arg|
           Rails.cache.delete self.class.class_method_cache_key(meth, arg)
         end
+        # For empty array
+        Rails.cache.delete self.class.class_method_cache_key(meth, args)
       end
     end
 

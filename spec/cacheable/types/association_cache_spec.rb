@@ -348,7 +348,7 @@ describe Cacheable do
         obj.stubs(:nil?).returns true
         account.stubs(:user).returns obj
         obj.expects(:expire_association_cache).never
-        account.expire_account_cache
+        account.expire_users_account_cache
       end
 
     end
