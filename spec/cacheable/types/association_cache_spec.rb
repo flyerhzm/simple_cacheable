@@ -4,27 +4,40 @@ describe Cacheable do
   let(:cache) { Rails.cache }
 
   before :all do
-    @user     = User.create(:login => 'flyerhzm')
-    @user2    =  User.create(:login => 'ScotterC')
-    @post1    = @user.posts.create(:title => 'post1')
-    @post2    = @user.posts.create(:title => 'post2')
-    @post3    = Post.create
-    @image1   = @post1.images.create
-    @image2   = @post1.images.create
-    @comment1 = @post1.comments.create
-    @comment2 = @post1.comments.create
-    @tag1     = @post1.tags.create(title: "Rails")
-    @tag2     = @post1.tags.create(title: "Caching")
-    @group1   = Group.create(name: "Ruby On Rails")
-    @account  = @user.create_account(group: @group1)
-    @location = @post1.create_location(city: "New York")
-    @account_location = @account.create_account_location(city: "New Orleans")
-    @account.save # @account doesn't persist location id?
+    user     = User.create(:login => 'flyerhzm')
+    post1    = user.posts.create(:title => 'post1')
+    group1   = Group.create(name: "Ruby On Rails")
+    account  = user.create_account(group: group1)
+
+    User.create(:login => 'ScotterC')
+    user.posts.create(:title => 'post2')
+    Post.create(:title => 'post3')
+    post1.images.create
+    post1.images.create
+    post1.comments.create
+    post1.comments.create
+    post1.tags.create(title: "Rails")
+    post1.tags.create(title: "Caching")
+    post1.create_location(city: "New York")
+    account.create_account_location(city: "New Orleans")
   end
 
   before :each do
-    @user.reload
-    @post1.reload
+    @user             = User.find_by_login('flyerhzm')
+    @user2            = User.find_by_login('ScotterC')
+    @post1            = Post.find_by_title("post1")
+    @post2            = Post.find_by_title("post2")
+    @post3            = Post.find_by_title("post3")
+    @image1           = @post1.images.first
+    @image2           = @post1.images.last
+    @comment1         = @post1.comments.first
+    @comment2         = @post1.comments.last
+    @tag1             = @post1.tags.where(title: "Rails").first
+    @tag2             = @post1.tags.where(title: "Caching").first
+    @group1           = Group.find_by_name("Ruby On Rails")
+    @account          = @user.account
+    @location         = @post1.location
+    @account_location = @account.account_location
   end
 
   context "with_association" do
@@ -64,6 +77,14 @@ describe Cacheable do
 
       it "should return nil if there are none" do
         @post3.cached_user.should be_nil
+      end
+
+      it "should expire cached_posts for user on save" do
+        Rails.cache.read("users/#{@user.id}/association/posts").should be_nil
+        @user.cached_posts.should == [@post1, @post2]
+        Rails.cache.read("users/#{@user.id}/association/posts").should == [coder(@post1), coder(@post2)]
+        @post1.save
+        Rails.cache.read("users/#{@user.id}/association/posts").should be_nil
       end
     end
 
