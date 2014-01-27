@@ -17,7 +17,7 @@ class Post < ActiveRecord::Base
   model_cache do
     with_key
     with_attribute :user_id
-    with_association :user, :comments, :images, :tags
+    with_association :user, :comments, :images, :tags, :location
     with_class_method :retrieve_with_user_id, :retrieve_with_both, :default_post,
                       :where_options_are
   end

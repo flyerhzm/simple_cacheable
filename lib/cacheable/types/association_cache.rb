@@ -1,8 +1,10 @@
 module Cacheable
   module AssocationCache
     def with_association(*association_names)
-      self.cached_associations ||= []
-      self.cached_associations += association_names
+      self.cached_associations ||= {}
+      self.cached_associations = self.cached_associations.merge(association_names.each_with_object({}) {
+        |meth, hash| hash[meth.to_sym] = {}
+      })
 
       class_eval do
         after_commit :expire_associations_cache
@@ -11,26 +13,28 @@ module Cacheable
       association_names.each do |association_name|
         association = reflect_on_association(association_name)
 
-        belongs_to  = association.macro == :belongs_to
+
         polymorphic = association.options[:polymorphic]
         polymorphic ||= false
 
-        build_cache_method_for(association_name, belongs_to, polymorphic)
-        build_expire_cache_method_for(association, association_name) unless belongs_to
+        type = determine_type_of(association)
+        belongs_to = type == :belongs_to
+        association_info = { :polymorphic => polymorphic, :type => type }
+        self.cached_associations[association_name].merge!(association_info)
+
+        build_cache_method_for(association_name, association_info)
+        build_expire_cache_method_for(association, association_name, association_info) unless belongs_to
       end
     end
 
-    def build_cache_method_for(association_name, belongs_to, polymorphic)
+    def build_cache_method_for(association_name, association_info)
       method_name = :"cached_#{association_name}"
 
       define_method(method_name) do
         if instance_variable_get("@#{method_name}").nil?
 
-          cache_key = if belongs_to
-            belong_association_cache_key(association_name, polymorphic)
-          else
-            have_association_cache_key(association_name)
-          end
+          cache_key = association_cache_key(association_name, association_info)
+
           result = if cache_key
             association_cache.delete(association_name)
             Cacheable.fetch(cache_key) do
@@ -47,8 +51,8 @@ module Cacheable
       end
     end
 
-    def build_expire_cache_method_for(association, association_name)
-      type = determine_type_of(association)
+    def build_expire_cache_method_for(association, association_name, association_info)
+      type = association_info[:type]
       reverse_association = get_reverse_association_for(association, type)
       return if reverse_association.nil?
 
@@ -91,15 +95,13 @@ module Cacheable
     def determine_type_of(association)
       if association.options[:through]
         :has_through
-      elsif :has_and_belongs_to_many == association.macro
-        :habtm
       else
-        :has_many
+        association.macro
       end
     end
 
     def get_reverse_association_for(association, type)
-      relationship = type == :habtm ? :has_and_belongs_to_many : :belongs_to
+      relationship = type == :has_and_belongs_to_many ? :has_and_belongs_to_many : :belongs_to
       association.klass.reflect_on_all_associations(relationship).find do |reverse_association|
         if reverse_association.options[:polymorphic]
           as_relation = type == :has_through ? association.source_reflection.options[:as] : association.options[:as]

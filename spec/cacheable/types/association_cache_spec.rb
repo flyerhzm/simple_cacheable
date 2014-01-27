@@ -19,7 +19,9 @@ describe Cacheable do
     post1.tags.create(title: "Rails")
     post1.tags.create(title: "Caching")
     post1.create_location(city: "New York")
+    post1.save
     account.create_account_location(city: "New Orleans")
+    account.save
   end
 
   before :each do
@@ -61,12 +63,12 @@ describe Cacheable do
         @post1.cached_user.should == @user
       end
 
-      it "should not expire cached user on save" do
+      it "should expire cached user on save" do
         Rails.cache.read("users/#{@user.id}").should be_nil
         @post1.cached_user.should == @user
         Rails.cache.read("users/#{@user.id}").should == coder(@user)
         @post1.save
-        Rails.cache.read("users/#{@user.id}").should == coder(@user)
+        Rails.cache.read("users/#{@user.id}").should be_nil
       end
 
       it "should cache Comment#commentable with polymorphic" do
@@ -104,7 +106,6 @@ describe Cacheable do
       end
 
       it "should expire associations on save of associated objects" do
-        pending #heisenbug.  When inspected it works fine
         Rails.cache.read("users/#{@user.id}/association/posts").should be_nil
         @user.cached_posts.should == [@post1, @post2]
         Rails.cache.read("users/#{@user.id}/association/posts").should_not be_nil
@@ -113,7 +114,6 @@ describe Cacheable do
       end
 
       it "should expire associations on save of parent" do
-        pending #heisenbug.  When inspected it works fine
         Rails.cache.read("users/#{@user.id}/association/posts").should be_nil
         @user.cached_posts.should == [@post1, @post2]
         Rails.cache.read("users/#{@user.id}/association/posts").should_not be_nil
@@ -142,7 +142,6 @@ describe Cacheable do
       end
 
       it "should expire associations on save" do
-        pending
         Rails.cache.read("posts/#{@post1.id}/association/comments").should be_nil
         @post1.cached_comments.should == [@comment1, @comment2]
         Rails.cache.read("posts/#{@post1.id}/association/comments").should == [coder(@comment1), coder(@comment2)]
@@ -171,7 +170,6 @@ describe Cacheable do
       end
 
       it "should expire association on save" do
-        pending
         Rails.cache.read("users/#{@user.id}/association/account").should be_nil
         @user.cached_account.should == @account
         Rails.cache.read("users/#{@user.id}/association/account").should == coder(@account)
@@ -200,7 +198,6 @@ describe Cacheable do
       end
 
       it "should expire associations on save" do
-        pending
         Rails.cache.read("users/#{@user.id}/association/images").should be_nil
         @user.cached_images.should == [@image1, @image2]
         Rails.cache.read("users/#{@user.id}/association/images").should == [coder(@image1), coder(@image2)]
@@ -244,7 +241,6 @@ describe Cacheable do
       end
 
       it "should expire association on save" do
-        pending
         Rails.cache.read("users/#{@user.id}/association/group").should be_nil
         @user.cached_group.should == @group1
         Rails.cache.read("users/#{@user.id}/association/group").should == coder(@group1)
@@ -275,7 +271,6 @@ describe Cacheable do
       end
 
       it "should expire association on save" do
-        pending
         Rails.cache.read("posts/#{@post1.id}/association/tags").should be_nil
         @post1.cached_tags.should == [@tag1, @tag2]
         Rails.cache.read("posts/#{@post1.id}/association/tags").should == [coder(@tag1), coder(@tag2)]
@@ -456,6 +451,16 @@ describe Cacheable do
     it "should handle associations with different names" do
       @user.account.account_location.should == @account_location
       @user.cached_account.cached_account_location.should == @account_location
+    end
+  end
+
+  describe "association cache key bug" do
+    it "expires the correct key" do
+      Rails.cache.read("locations/#{@location.id}").should be_nil
+      @post1.cached_location.should == @location
+      Rails.cache.read("locations/#{@location.id}").should_not be_nil
+      @post1.save
+      Rails.cache.read("locations/#{@location.id}").should be_nil
     end
   end
 

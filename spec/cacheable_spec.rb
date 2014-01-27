@@ -60,4 +60,91 @@ describe Cacheable do
       Rails.cache.read("users/#{@user.id}/association/group").should == coder(@group1)
     end
   end
+
+  describe "class_attributes" do
+    before :each do
+      Rails.cache.clear
+    end
+
+    describe "cached_key" do
+      it "is a boolean for a class" do
+        User.cached_key.should be_true
+        Account.cached_key.should be_false
+      end
+    end
+
+    describe "cached_indices" do
+      before :each do
+        User.cached_indices.values.each(&:clear)
+      end
+
+      it "is a hash of attributes for a class" do
+        User.cached_indices.should == {:login => Set.new}
+        User.find_cached_by_login("flyerhzm")
+        User.cached_indices.should == {:login => Set.new(["flyerhzm"])}
+      end
+    end
+
+    describe "cached_methods" do
+      it "is an array of methods" do
+        methods = User.cached_methods
+        methods.should == [ :last_post, :bad_iv_name!, :bad_iv_name?,
+                            :admin?, :hash_with_class_key]
+      end
+
+      context "descendant" do
+        it "should have cached_methods" do
+          methods = Descendant.cached_methods
+          methods.should == [:last_post, :bad_iv_name!, :bad_iv_name?,
+                             :admin?, :hash_with_class_key, :name]
+        end
+      end
+    end
+
+    describe "cached_class_methods" do
+      before :each do
+        Post.cached_class_methods.values.each(&:clear)
+      end
+
+      it "is an hash of arrays" do
+        methods = Post.cached_class_methods
+        methods.should == { :retrieve_with_user_id => Set.new,
+                            :retrieve_with_both => Set.new,
+                            :default_post => Set.new,
+                            :where_options_are => Set.new
+                          }
+        Post.cached_retrieve_with_user_id(1)
+        methods = Post.cached_class_methods
+        methods.should == { :retrieve_with_user_id => Set.new([[1]]),
+                            :retrieve_with_both => Set.new,
+                            :default_post => Set.new,
+                            :where_options_are => Set.new
+                          }
+      end
+    end
+
+    describe "cached_associations" do
+      it "is an array of association names" do
+        assocations = User.cached_associations
+        assocations.should == {
+          :posts   => {:polymorphic => false, :type => :has_many},
+          :account => {:polymorphic => false, :type => :has_one},
+          :images  => {:polymorphic => false, :type => :has_through},
+          :group   => {:polymorphic => false, :type => :has_through}
+        }
+        assocations = Post.cached_associations
+        assocations.should == {
+          :user     => {:polymorphic => false, :type => :belongs_to},
+          :comments => {:polymorphic => false, :type => :has_many},
+          :images   => {:polymorphic => false, :type => :has_many},
+          :tags     => {:polymorphic => false, :type => :has_and_belongs_to_many},
+          :location => {:polymorphic => false, :type => :belongs_to}
+        }
+        assocations = Comment.cached_associations
+        assocations.should == {
+          :commentable => {:polymorphic => true, :type => :belongs_to},
+        }
+      end
+    end
+  end
 end
