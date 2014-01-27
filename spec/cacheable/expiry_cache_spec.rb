@@ -91,7 +91,7 @@ describe Cacheable do
 
       it "should delete with_attribute cache" do
         @user = User.find_cached_by_login("flyerhzm")
-        Rails.cache.read("users/attribute/login/flyerhzm").should == {:class => @user.class, 'attributes' => @user.attributes}
+        Rails.cache.read("users/attribute/login/flyerhzm").should == coder(@user)
         @user.expire_model_cache
         Rails.cache.read("users/attribute/login/flyerhzm").should be_nil
       end
@@ -154,11 +154,6 @@ describe Cacheable do
         User.cached_indices.keys.should include :login
         User.cached_indices.keys.should_not include :email
       end
-
-      it "should have cached_methods" do
-        User.cached_methods.should_not be_nil
-        User.cached_methods.should == [:last_post, :bad_iv_name!, :bad_iv_name?, :admin?, :hash_with_class_key]
-      end
     end
 
     context "expiring class_method cache" do
@@ -180,11 +175,6 @@ describe Cacheable do
       it "has specific cached indices" do
         Descendant.cached_indices.keys.should include :login
         Descendant.cached_indices.keys.should include :email
-      end
-
-      it "should have cached_methods" do
-        Descendant.cached_methods.should_not be_nil
-        Descendant.cached_methods.should == [:last_post, :bad_iv_name!, :bad_iv_name?, :admin?, :hash_with_class_key, :name]
       end
 
       context "expiring method cache" do

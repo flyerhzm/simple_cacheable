@@ -47,8 +47,16 @@ module Cacheable
         "#{model_cache_key}/method/#{meth}"
       end
 
+      def association_cache_key(name, options={})
+        if options[:type] == :belongs_to
+          belongs_to_cache_key(name, options[:polymorphic])
+        else
+          "#{model_cache_key}/association/#{name}"
+        end
+      end
+
       # Returns nil if association cannot be qualified
-      def belong_association_cache_key(name, polymorphic=nil)
+      def belongs_to_cache_key(name, polymorphic=nil)
         name = name.to_s if name.is_a?(Symbol)
 
         if polymorphic && self.respond_to?(:"#{name}_type")
@@ -59,11 +67,7 @@ module Cacheable
         end
       end
 
-      def have_association_cache_key(name)
-        "#{model_cache_key}/association/#{name}"
-      end
-
-      # If it isa class.  It should be the base_class name
+      # If it is a class.  It should be the base_class name
       # else it should just be a name tableized
       def base_class_or_name(name)
         name = begin

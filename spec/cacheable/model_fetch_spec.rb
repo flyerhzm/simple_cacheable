@@ -21,7 +21,7 @@ describe Cacheable do
 
   describe "association fetch" do
     it "should find associations by name" do
-      key = @user.have_association_cache_key(:posts)
+      key = @user.association_cache_key(:posts)
       Cacheable.fetch(key) do
         @user.send(:posts)
       end.should == [@post1, @post2]

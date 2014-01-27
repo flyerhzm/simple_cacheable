@@ -46,13 +46,14 @@ module Cacheable
     end
 
     def expire_associations_cache
-      self.class.cached_associations.each do |assoc|
-        self.expire_association_cache(assoc)
+      self.class.cached_associations.each do |name, options|
+        self.expire_association_cache(name, options)
       end
     end
 
-    def expire_association_cache(name)
-      Rails.cache.delete have_association_cache_key(name)
+    def expire_association_cache(name, options={})
+      key = association_cache_key(name, options)
+      Rails.cache.delete key unless key.nil?
     end
   end
 end
