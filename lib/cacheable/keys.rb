@@ -28,7 +28,7 @@ module Cacheable
       end
 
       def cacheable_table_name
-        self.base_class.name.tableize
+        self.base_class.name.tableize.gsub("/", "_")
       end
 
     end
