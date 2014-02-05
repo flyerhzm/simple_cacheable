@@ -71,7 +71,7 @@ module Cacheable
       # else it should just be a name tableized
       def base_class_or_name(name)
         name = begin
-          name.capitalize.constantize.base_class.name
+          name.camelize.constantize.base_class.name
         rescue NameError # uninitialized constant
           name
         end
