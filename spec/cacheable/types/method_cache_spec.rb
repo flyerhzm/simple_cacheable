@@ -20,8 +20,11 @@ describe Cacheable do
   end
 
   it "should cache User#last_post" do
+    stub(User).modified_cache_key {|key| [0, key] * '/'}
+
     @user.cached_last_post.should == @user.last_post
-    Rails.cache.read("users/#{@user.id}/method/last_post").should == coder(@user.last_post)
+    Rails.cache.read("0/users/#{@user.id}/method/last_post").should == coder(@user.last_post)
+    Rails.cache.exist?("users/#{@user.id}/method/last_post").should == false
   end
 
   it "should cache User#last_post multiple times" do
@@ -74,7 +77,7 @@ describe Cacheable do
     end
 
     it "hits the cache only once" do
-      Cacheable.expects(:fetch).returns(@user.last_post).once
+      mock(Cacheable).fetch.with_any_args { @user.last_post }.once
       @user.cached_last_post.should == @user.last_post
       @user.cached_last_post.should == @user.last_post
     end

@@ -21,6 +21,14 @@ describe Cacheable do
     Rails.cache.read("users/#{@user.id}").should == coder(@user)
   end
 
+  it "should cache by User#id with modified keys" do
+    stub(User).modified_cache_key {|key| [0, key] * '/'}
+
+    User.find_cached(@user.id).should == @user
+    Rails.cache.read("0/users/#{@user.id}").should == coder(@user)
+    Rails.cache.exist?("users/#{@user.id}").should == false
+  end
+
   it "should get cached by User#id multiple times" do
     User.find_cached(@user.id)
     User.find_cached(@user.id).should == @user

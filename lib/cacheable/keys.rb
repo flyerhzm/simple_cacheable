@@ -9,22 +9,26 @@ module Cacheable
     module ClassKeys
 
       def attribute_cache_key(attribute, value)
-        "#{cacheable_table_name}/attribute/#{attribute}/#{URI.escape(value.to_s)}"
+        modified_cache_key "#{cacheable_table_name}/attribute/#{attribute}/#{URI.escape(value.to_s)}"
       end
 
       def all_attribute_cache_key(attribute, value)
-        "#{cacheable_table_name}/attribute/#{attribute}/all/#{URI.escape(value.to_s)}"
+        modified_cache_key "#{cacheable_table_name}/attribute/#{attribute}/all/#{URI.escape(value.to_s)}"
       end
 
       def class_method_cache_key(meth, *args)
         key = "#{cacheable_table_name}/class_method/#{meth}"
         args.flatten!
         key += "/#{args.join('+')}" if args.any?
-        return key
+        return modified_cache_key key
       end
 
       def instance_cache_key(param)
-        "#{cacheable_table_name}/#{param}"
+        modified_cache_key "#{cacheable_table_name}/#{param}"
+      end
+
+      def modified_cache_key(key)
+        key
       end
 
       def cacheable_table_name
@@ -35,12 +39,16 @@ module Cacheable
 
     module InstanceKeys
 
+      def modified_cache_key(key)
+        self.class.modified_cache_key(key)
+      end
+
       def model_cache_keys
-        ["#{self.class.cacheable_table_name}/#{self.id.to_i}", "#{self.class.cacheable_table_name}/#{self.to_param}"]
+        ["#{self.class.cacheable_table_name}/#{self.id.to_i}", "#{self.class.cacheable_table_name}/#{self.to_param}"].map {|key| modified_cache_key key}
       end
 
       def model_cache_key
-        "#{self.class.cacheable_table_name}/#{self.id.to_i}"
+        modified_cache_key "#{self.class.cacheable_table_name}/#{self.id.to_i}"
       end
 
       def method_cache_key(meth)
@@ -51,7 +59,7 @@ module Cacheable
         if options[:type] == :belongs_to
           belongs_to_cache_key(name, options[:polymorphic])
         else
-          "#{model_cache_key}/association/#{name}"
+          modified_cache_key "#{model_cache_key}/association/#{name}"
         end
       end
 
@@ -59,12 +67,14 @@ module Cacheable
       def belongs_to_cache_key(name, polymorphic=nil)
         name = name.to_s if name.is_a?(Symbol)
 
-        if polymorphic && self.respond_to?(:"#{name}_type")
+        key = if polymorphic && self.respond_to?(:"#{name}_type")
           return nil unless self.send(:"#{name}_type").present?
           "#{base_class_or_name(self.send(:"#{name}_type"))}/#{self.send(:"#{name}_id")}"
         else
           "#{base_class_or_name(name)}/#{self.send(:"#{name}_id")}"
         end
+
+        modified_cache_key key
       end
 
       # If it is a class.  It should be the base_class name
