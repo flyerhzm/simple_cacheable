@@ -6,7 +6,7 @@ require 'active_record'
 require 'support/ar_patches'
 require 'support/coder_macro'
 require 'rspec'
-require 'mocha/api'
+require 'rr'
 require 'memcached'
 require 'cacheable'
 require 'friendly_id'
@@ -39,7 +39,7 @@ module Rails
 end
 
 RSpec.configure do |config|
-  config.mock_with :mocha
+  config.mock_with :rr
 
   config.filter_run focus: true
   config.run_all_when_everything_filtered = true

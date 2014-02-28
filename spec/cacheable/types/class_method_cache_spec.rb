@@ -22,6 +22,14 @@ describe Cacheable do
     Rails.cache.read("posts/class_method/default_post").should == coder(@post1)
   end
 
+  it "should cache Post.default_post with modified key" do
+    stub(Post).modified_cache_key {|key| [0, key] * '/'}
+
+    Post.cached_default_post.should == @post1
+    Rails.cache.read("0/posts/class_method/default_post").should == coder(@post1)
+    Rails.cache.exist?("posts/class_method/default_post").should == false
+  end
+
   it "should cache Post.default_post multiple times" do
     Post.cached_default_post
     Post.cached_default_post.should == @post1

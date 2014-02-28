@@ -25,6 +25,14 @@ describe Cacheable do
       Rails.cache.read("users/attribute/login/flyerhzm").should =={:class => @user.class, 'attributes' => @user.attributes}
     end
 
+    it "should cache by User.find_by_login with a modified key" do
+      stub(User).modified_cache_key {|key| [0, key] * '/'}
+
+      User.find_cached_by_login("flyerhzm").should == @user
+      Rails.cache.read("0/users/attribute/login/flyerhzm").should =={:class => @user.class, 'attributes' => @user.attributes}
+      Rails.cache.exist?("users/attribute/login/flyerhzm").should == false
+    end
+
     it "should get cached by User.find_by_login multiple times" do
       User.find_cached_by_login("flyerhzm")
       User.find_cached_by_login("flyerhzm").should == @user

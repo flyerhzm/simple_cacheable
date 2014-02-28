@@ -58,6 +58,14 @@ describe Cacheable do
         Rails.cache.read("users/#{@user.id}").should == coder(@user)
       end
 
+      it "should cache Post#user with modified key" do
+        stub(Post).modified_cache_key {|key| [0, key] * '/'}
+
+        @post1.cached_user.should == @user
+        Rails.cache.read("0/users/#{@user.id}").should == coder(@user)
+        Rails.cache.exist?("users/#{@user.id}").should == false
+      end
+
       it "should cache Post#user multiple times" do
         @post1.cached_user
         @post1.cached_user.should == @user
@@ -302,19 +310,19 @@ describe Cacheable do
 
   describe "after_commit bug" do
     it "normal" do
-      @image1.expects(:do_something).once
+      mock(@image1).do_something.once
       @image1.save
     end
 
     it "new image fails without association" do
       image = Image.new
-      image.expects(:do_something).once
+      mock(image).do_something.once
       image.save
     end
 
     it "new image fails with missing association" do
       image = @group1.images.new
-      image.expects(:do_something).once
+      mock(image).do_something.once
       image.save
     end
   end
@@ -322,7 +330,7 @@ describe Cacheable do
   describe "belongs_to bug" do
 
     it "shouldn't hit location" do
-      @location.expects(:expire_association_cache).with(:images).never
+      mock(@location).expire_association_cache.with(:images).never
       @user.save
     end
 
@@ -330,8 +338,8 @@ describe Cacheable do
       it "should not hit expire_association_cache on save" do
         account = Account.create
         user = User.new
-        user.expects(:expire_association_cache)
-        account.stubs(:user).returns user
+        mock(user).expire_association_cache.with(:account)
+        stub(account).user { user }
         account.save
       end
     end
@@ -339,10 +347,10 @@ describe Cacheable do
     context "without a user" do
       it "should not hit expire_association_cache on save" do
         account = Account.create
-        obj = mock "object"
-        obj.stubs(:nil?).returns true
-        account.stubs(:user).returns obj
-        obj.expects(:expire_association_cache).never
+        obj = "object"
+        stub(obj).nil? { true }
+        stub(account).user { obj }
+        mock(obj).expire_association_cache.never
         account.expire_users_account_cache
       end
 
@@ -373,7 +381,7 @@ describe Cacheable do
       end
 
       it "hits the cache only once" do
-        Rails.cache.expects(:read).returns(coder(@post1.user)).once
+        mock(Rails.cache).read.with_any_args { coder(@post1.user) }.once
         @post1.cached_user.should == @post1.user
         @post1.cached_user.should == @post1.user
       end
@@ -392,7 +400,7 @@ describe Cacheable do
       end
 
       it "hits the cache only once" do
-        Rails.cache.expects(:read).returns(coder(@user.images)).once
+        mock(Rails.cache).read.with_any_args { coder(@user.images) }.once
         @user.cached_images.should == @user.images
         @user.cached_images.should == @user.images
       end
@@ -411,7 +419,7 @@ describe Cacheable do
       end
 
       it "hits the cache only once" do
-        Rails.cache.expects(:read).returns(coder(@post1.tags)).once
+        mock(Rails.cache).read.with_any_args { coder(@post1.tags) }.once
         @post1.cached_tags.should == @post1.tags
         @post1.cached_tags.should == @post1.tags
       end
@@ -430,7 +438,7 @@ describe Cacheable do
       end
 
       it "hits the cache only once" do
-        Rails.cache.expects(:read).returns(coder(@user.posts)).once
+        mock(Rails.cache).read.with_any_args { coder(@user.posts) }.once
         @user.cached_posts.should == @user.posts
         @user.cached_posts.should == @user.posts
       end

@@ -66,12 +66,26 @@ Usage
 Advanced Usage
 --------------
 
+Utilize Simple Cacheable to cache ActiveRecord objects without marshalling errors:
 ````ruby
-  # Utilize Simple Cacheable to cache ActiveRecord objects without marshalling errors
   Cacheable.fetch "collection_of_twelve_users", expires_in: 1.day do
     User.limit(12)
   end
 ````
+
+Override ````modified_cache_key```` to customize cache keys. Single point for dependency injection.
+````ruby
+  # E.G. if you wanted to version your cache:
+  class User < ActiveRecord::Base
+    has_one :cache_version
+
+    def self.modified_cache_key(key)
+      "#{cache_version.version}/#{key}"
+    end
+  end
+````
+
+(````modified_cache_key```` can be overriden at the class level or the instance level. By default the instance implementation falls back to the class implementation.)
 
 Install
 -------
