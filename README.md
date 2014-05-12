@@ -44,7 +44,7 @@ Usage
 
       model_cache do
         with_key                                # post.find_cached(1)
-        with_class_method  :default_post        # Post.default_post
+        with_class_method  :default_post        # Post.cached_default_post
         with_association   :user, :comments     # post.cached_user, post.cached_comments
       end
 
